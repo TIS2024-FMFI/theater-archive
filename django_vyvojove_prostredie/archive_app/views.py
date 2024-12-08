@@ -5,3 +5,6 @@ from django.http import HttpResponse
 
 def index(response):
     return HttpResponse("<h1>test</h1>")
+
+def empty_page(request):
+    return render(request, 'empty_page.html')

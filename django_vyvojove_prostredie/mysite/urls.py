@@ -16,8 +16,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from archive_app import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include("archive_app.urls")),
+    path('empty/', views.empty_page, name='empty_page'),
 ]
