@@ -102,9 +102,24 @@ body {
     height: auto;
 }
 
+.empty-box {
+    margin: 10px;
+    height: 1000px; /* Height of the box */
+    border: 2px solid black; /* Border style */
+    background-color: white; /* Background color */
+
+}
+
 .content .container {
     display: flex;
     padding: 20px;
+}
+
+
+.header2 {
+    padding: 10px;
+    font-size: 1.7rem;
+    font-family: 'Helvetica', Arial, sans-serif;
 }
 
 .column {

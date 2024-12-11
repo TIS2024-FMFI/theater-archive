@@ -2,6 +2,7 @@
 
 {% include 'archive_app/header.html' %}
     <main>
+{%  block content %}
         <section class="hero">
             <img src="{%  static 'archive_app/snd.jpg' %}" alt="Building and Fountain">
         </section>
@@ -27,6 +28,7 @@
                 </div>
             </div>
         </section>
+{%  endblock %}
     </main>
 
 {% include 'archive_app/footer.html' %}

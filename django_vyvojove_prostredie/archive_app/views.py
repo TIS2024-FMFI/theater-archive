@@ -12,3 +12,6 @@ def index(request):
 
 def second_view(request):
     return HttpResponse('<h1>This is the second page</h1>')
+
+def plays(request):
+    return render(request, 'archive_app/plays.html')
