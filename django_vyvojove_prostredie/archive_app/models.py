@@ -4,12 +4,19 @@ class Ensemble(models.Model):
     name = models.CharField(max_length=100)
     foundation_date = models.DateField()
     dissolution_date = models.DateField(null=True, blank=True)
-
+    
     def __str__(self):
         return self.name
 
 
 class GenreType(models.Model):
+    name = models.CharField(max_length=20)
+
+    def __str__(self):
+        return self.name
+
+
+class Room(models.Model):
     name = models.CharField(max_length=50)
 
     def __str__(self):
@@ -31,14 +38,37 @@ class Play(models.Model):
 
 class Document(models.Model):
     document_path = models.CharField(max_length=100)
-    play = models.ForeignKey('Play', on_delete=models.CASCADE, related_name='documents')
 
     def __str__(self):
         return self.document_path
 
 
+class PlayDocument(models.Model):
+    play = models.ForeignKey('Play', on_delete=models.CASCADE)
+    document = models.ForeignKey('Document', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.play} - {self.document}"
+
+
+class ConcertDocument(models.Model):
+    concert = models.ForeignKey('Concert', on_delete=models.CASCADE)
+    document = models.ForeignKey('Document', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.concert} - {self.document}"
+
+
+class EmployeeDocument(models.Model):
+    employee = models.ForeignKey('Employee', on_delete=models.CASCADE)
+    document = models.ForeignKey('Document', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.employee} - {self.document}"
+
+
 class EmployeeType(models.Model):
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=20)
 
     def __str__(self):
         return self.name
@@ -58,26 +88,77 @@ class Employee(models.Model):
 
 
 class EmployeeJob(models.Model):
-    employee = models.ForeignKey('Employee', on_delete=models.CASCADE, related_name='jobs')
-    play = models.ForeignKey('Play', on_delete=models.CASCADE, related_name='jobs')
-    job = models.CharField(max_length=50)
+    employee = models.ForeignKey('Employee', on_delete=models.CASCADE)
+    job = models.ForeignKey('Job', on_delete=models.CASCADE)
+    date_start = models.DateField()
+    date_end = models.DateField(null=True, blank=True)
 
     def __str__(self):
-        return f"{self.employee} - {self.job} ({self.play.title})"
+        return f"{self.employee} - {self.job}"
 
 
-class Room(models.Model):
+class Job(models.Model):
     name = models.CharField(max_length=50)
 
     def __str__(self):
         return self.name
 
 
+class PlayPerformer(models.Model):
+    play = models.ForeignKey('Play', on_delete=models.CASCADE)
+    employee_job = models.ForeignKey('EmployeeJob', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.play} - {self.employee_job}"
+
+
+class Concert(models.Model):
+    name = models.CharField(max_length=100)
+    date = models.DateTimeField()
+    description = models.TextField(null=True, blank=True)
+    concert_type = models.ForeignKey('ConcertType', on_delete=models.SET_NULL, null=True)
+
+    def __str__(self):
+        return self.name
+
+
+class ConcertPerformer(models.Model):
+    concert = models.ForeignKey('Concert', on_delete=models.CASCADE)
+    employee_job = models.ForeignKey('EmployeeJob', on_delete=models.CASCADE)
+    job = models.CharField(max_length=50)
+
+    def __str__(self):
+        return f"{self.concert} - {self.employee_job} ({self.job})"
+
+
+class ConcertType(models.Model):
+    name = models.CharField(max_length=20)
+
+    def __str__(self):
+        return self.name
+
+
 class Repeat(models.Model):
-    play = models.ForeignKey('Play', on_delete=models.CASCADE, related_name='repeats')
+    play = models.ForeignKey('Play', on_delete=models.CASCADE)
     room = models.ForeignKey('Room', on_delete=models.SET_NULL, null=True)
     date = models.DateTimeField()
     publicity = models.BooleanField(default=False)
+    repeat_type = models.ForeignKey('RepeatType', on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
-        return f"{self.play.title} ({self.date})"
+        return f"{self.play} - {self.date}"
+
+
+class RepeatType(models.Model):
+    name = models.CharField(max_length=20)
+
+    def __str__(self):
+        return self.name
+
+
+class RepeatPerformer(models.Model):
+    repeat = models.ForeignKey('Repeat', on_delete=models.CASCADE)
+    employee_job = models.ForeignKey('EmployeeJob', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.repeat} - {self.employee_job}"

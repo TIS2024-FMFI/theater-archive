@@ -1,0 +1,32 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archív SND</title>
+    <link rel="stylesheet" href="{%  static 'archive_app/index.css' %}">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="logo-title">
+                <div class="logo">
+                    <a href="/"><img src="{%  static 'archive_app/logo.png' %}" alt="SND Logo"></a>
+                </div>
+                <h1>Archív SND</h1>
+            </div>
+            <nav class="nav">
+                <a href="/plays">Predstavenia</a>
+                <a href="#">Koncerty a podujatia</a>
+                <a href="#">Súbory</a>
+                <a href="#">Umelci a spolupracovníci</a>
+            </nav>
+            {% if user.is_authenticated %}
+                <a href="/logout" class="login-btn">Odhlásiť sa</a>
+            {% else %}
+                <a href="/login" class="login-btn">Prihlásiť sa</a>
+            {% endif %}
+        </div>
+    </header>
