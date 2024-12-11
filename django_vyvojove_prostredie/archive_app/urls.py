@@ -17,5 +17,7 @@ urlpatterns = [
     path('concerts_and_events/get_concert_or_event/', views.get_concert_or_event, name='get_concert_or_event'),
     path('ensembles/get_ensemble/', views.get_ensemble, name='get_ensemble'),
     path('employees/get_employee/', views.get_employee, name='get_employee'),
-    path('admin_section/', views.admin_section, name='admin_section')
+    path('admin_section/', views.admin_section, name='admin_section'),
+    path('login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout')
 ]

@@ -1,5 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login, logout
 
 # Create your views here.
 
@@ -50,3 +52,23 @@ def get_employee(request):
 
 def admin_section(request):
     return HttpResponse('<h1>Tu sa budú spravovať ďalšie funkcionality administrátora</h1>')
+
+def login_view(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            if user.is_staff:
+                return redirect('main_page')
+            else:
+                return render(request, 'archive_app/login.html', {'error': 'Nemáte administrátorské práva.'})
+        else:
+            return render(request, 'archive_app/login.html', {'error': 'Neplatné údaje.'})
+    else:
+        return render(request, 'archive_app/login.html')
+
+def logout_view(request):
+    logout(request)
+    return redirect('main_page')
