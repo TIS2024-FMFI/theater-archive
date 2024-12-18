@@ -27,7 +27,7 @@ def form_repeats(request):
     return HttpResponse('<h1>Toto bude formulár na pridanie reprízy daného predstavenia</h1>')
 
 def form_concerts_and_events(request):
-    return HttpResponse('<h1>Toto bude formulár na pridanie nového koncertu alebo podujatia</h1>')
+    return render(request, 'archive_app/form_concerts_and_events.html')
 
 def form_ensembles(request):
     return HttpResponse('<h1>Toto bude formulár na pridanie nového súboru</h1>')

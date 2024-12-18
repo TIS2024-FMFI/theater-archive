@@ -1,0 +1,74 @@
+{% extends 'archive_app/index.html' %}
+{% load static %}
+{% block content %}
+    <link rel="stylesheet" href="{%  static 'archive_app/form_concerts_and_events.css' %}">
+    <div class="form-container">
+        <h1>Nový koncert/podujatie</h1>
+
+        <form>
+            <div class="form-group">
+                <label for="date">Dátum :</label>
+                <input type="date" id="date" name="date">
+            </div>
+
+            <div class="form-group">
+                <label for="event-type">Koncert/podujatie :</label>
+                <select id="event-type" name="event-type">
+                    <option value="koncert">Koncert</option>
+                    <option value="podujatie">Podujatie</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="title">Názov :</label>
+                <input type="text" id="title" name="title" placeholder="Názov koncertu / podujatia">
+            </div>
+
+            <div class="form-group">
+                <label for="description">Popis :</label>
+                <textarea id="description" name="description" rows="5" placeholder="Sem píšte popis..."></textarea>
+            </div>
+
+            <h2>Inscenačný tím :</h2>
+            <div class="form-group">
+                <label for="director">Réžia :</label>
+                <select id="director" name="director">
+                    <option value="">-</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="scene">Scéna :</label>
+                <select id="scene" name="scene">
+                    <option value="">-</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="dramaturgy">Dramaturg :</label>
+                <select id="dramaturgy" name="dramaturgy">
+                    <option value="">-</option>
+                </select>
+            </div>
+
+            <h2>Účinkujúci :</h2>
+            <div class="form-group">
+                <label for="position">Zaradenie :</label>
+                <select id="position" name="position">
+                    <option value="">-</option>
+                </select>
+                <button type="button" class="delete-btn">✖</button>
+            </div>
+
+            <button type="button" class="add-btn">Pridať zaradenie</button>
+
+            <div class="form-group upload-section">
+                <label>Program: <input type="file"></label>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="save-btn">Uložiť</button>
+            </div>
+        </form>
+    </div>
+{% endblock %}
