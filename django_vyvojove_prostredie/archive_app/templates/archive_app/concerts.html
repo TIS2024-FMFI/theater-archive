@@ -1,0 +1,51 @@
+{% extends 'archive_app/index.html' %}
+{% load static %}
+{% block content %}
+<section class="content">
+    <!-- Header Section -->
+    <link rel="stylesheet" href="{%  static 'archive_app/list.css' %}">
+
+    <section class="header2">
+        <h1 class="title">Koncerty a podujatia</h1>
+        {% if user.is_authenticated %}
+            <a href="/concerts_and_events/add_concert_or_event/" class="btn">Pridať podujatie</a>
+        {% endif %}
+    </section>
+
+    <!-- Filters Section -->
+    <section class="filters">
+        <div class="filter">
+            <label for="abecedne">Abecedne</label>
+            <select id="abecedne" class="dropdown">
+                <option>Od a po z</option>
+                <option>Od z po a</option>
+            </select>
+        </div>
+        <div class="filter">
+            <label for="zaner">Výber udalosti</label>
+            <select id="zaner" class="dropdown">
+                <option>Koncert</option>
+                <option>Podujatie</option>
+            </select>
+        </div>
+        <div class="filter">
+            <label for="zverejnene">Zverejnené</label>
+            <select id="zverejnene" class="dropdown">
+                <option>-</option>
+            </select>
+        </div>
+        <div class="filter search">
+            <label for="key-term">Kľúčový pojem</label>
+            <input id="key-term" type="text" class="search-input" placeholder="Sem napíš pojem">
+        </div>
+        <div class="filter">
+            <button class="btn ">Vyhľadať</button>
+        </div>
+    </section>
+
+    <!-- Results Section -->
+    <section class="results">
+        <p class="results-text">Nájdených 0 záznamov.</p>
+    </section>
+</section>
+{% endblock %}

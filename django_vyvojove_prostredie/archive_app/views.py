@@ -12,13 +12,13 @@ def list_plays(request):
     return render(request, 'archive_app/plays.html')
 
 def list_concerts_and_events(request):
-    return HttpResponse('<h1>Tu budú vypísané koncerty a iné podujatia</h1>')
+    return render(request, 'archive_app/concerts.html')
 
 def list_ensembles(request):
-    return HttpResponse('<h1>Tu budú vypísané súbory</h1>')
+    return render(request, 'archive_app/ensembles.html')
 
 def list_employees(request):
-    return HttpResponse('<h1>Tu budú vypísaní zamestnanci</h1>')
+    return render(request, 'archive_app/employees.html')
 
 def form_plays(request):
     return render(request,'archive_app/form_play.html')
