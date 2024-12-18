@@ -6,9 +6,9 @@
     <link rel="stylesheet" href="{%  static 'archive_app/list.css' %}">
 
     <section class="header2">
-        <h1 class="title">Predstavenia</h1>
+        <h1 class="title">Umelci a spolupracovníci</h1>
         {% if user.is_authenticated %}
-            <a href="/plays/add_play" class="btn">Pridať predstavenie</a>
+            <a href="/employees/add_employee/" class="btn">Pridať osobu</a>
         {% endif %}
     </section>
 
@@ -22,8 +22,8 @@
             </select>
         </div>
         <div class="filter">
-            <label for="zaner">Žáner</label>
-            <select id="zaner" class="dropdown">
+            <label for="meno">Meno</label>
+            <select id="meno" class="dropdown">
                 <option>-</option>
             </select>
         </div>
@@ -34,8 +34,8 @@
             </select>
         </div>
         <div class="filter">
-            <label for="sezona">Sezóna</label>
-            <select id="sezona" class="dropdown">
+            <label for="rola">Rola</label>
+            <select id="rola" class="dropdown">
                 <option>-</option>
             </select>
         </div>

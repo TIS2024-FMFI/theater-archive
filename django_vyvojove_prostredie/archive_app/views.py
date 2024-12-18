@@ -12,22 +12,22 @@ def list_plays(request):
     return render(request, 'archive_app/plays.html')
 
 def list_concerts_and_events(request):
-    return HttpResponse('<h1>Tu budú vypísané koncerty a iné podujatia</h1>')
+    return render(request, 'archive_app/concerts.html')
 
 def list_ensembles(request):
-    return HttpResponse('<h1>Tu budú vypísané súbory</h1>')
+    return render(request, 'archive_app/ensembles.html')
 
 def list_employees(request):
-    return HttpResponse('<h1>Tu budú vypísaní zamestnanci</h1>')
+    return render(request, 'archive_app/employees.html')
 
 def form_plays(request):
-    return HttpResponse('<h1>Toto bude formulár na pridanie nového predstavenia</h1>')
+    return render(request,'archive_app/form_play.html')
 
 def form_repeats(request):
     return HttpResponse('<h1>Toto bude formulár na pridanie reprízy daného predstavenia</h1>')
 
 def form_concerts_and_events(request):
-    return HttpResponse('<h1>Toto bude formulár na pridanie nového koncertu alebo podujatia</h1>')
+    return render(request, 'archive_app/form_concerts_and_events.html')
 
 def form_ensembles(request):
     return HttpResponse('<h1>Toto bude formulár na pridanie nového súboru</h1>')

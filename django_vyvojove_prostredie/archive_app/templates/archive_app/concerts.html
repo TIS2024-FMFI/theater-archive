@@ -6,9 +6,9 @@
     <link rel="stylesheet" href="{%  static 'archive_app/list.css' %}">
 
     <section class="header2">
-        <h1 class="title">Predstavenia</h1>
+        <h1 class="title">Koncerty a podujatia</h1>
         {% if user.is_authenticated %}
-            <a href="/plays/add_play" class="btn">Pridať predstavenie</a>
+            <a href="/concerts_and_events/add_concert_or_event/" class="btn">Pridať podujatie</a>
         {% endif %}
     </section>
 
@@ -22,21 +22,10 @@
             </select>
         </div>
         <div class="filter">
-            <label for="zaner">Žáner</label>
+            <label for="zaner">Výber udalosti</label>
             <select id="zaner" class="dropdown">
-                <option>-</option>
-            </select>
-        </div>
-        <div class="filter">
-            <label for="subor">Súbor</label>
-            <select id="subor" class="dropdown">
-                <option>-</option>
-            </select>
-        </div>
-        <div class="filter">
-            <label for="sezona">Sezóna</label>
-            <select id="sezona" class="dropdown">
-                <option>-</option>
+                <option>Koncert</option>
+                <option>Podujatie</option>
             </select>
         </div>
         <div class="filter">

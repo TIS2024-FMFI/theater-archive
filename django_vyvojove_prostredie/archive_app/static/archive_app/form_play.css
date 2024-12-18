@@ -1,0 +1,90 @@
+body {
+    background-color: #f9f9f9;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.form-container {
+    background-color: white;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    text-align: left;
+    font-size: 24px;
+    margin-bottom: 10px;
+    border-bottom: 2px solid #333;
+    padding-bottom: 5px;
+}
+
+.form-group {
+    margin: 15px 0;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+label {
+    width: 100%;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+input[type="text"],
+select,
+textarea {
+    width: calc(50% - 10px);
+    margin-right: 10px;
+    margin-bottom: 10px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+
+textarea {
+    width: 100%;
+    resize: vertical;
+}
+
+input[type="file"] {
+    border: none;
+}
+
+.upload-section label {
+    margin-bottom: 10px;
+}
+
+.team-section {
+    border: 1px dashed #ccc;
+    padding: 10px;
+    width: 100%;
+    background-color: #f2f2f2;
+    color: #666;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.save-btn {
+    background-color: #6c63ff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 3px;
+}
+
+.save-btn:hover {
+    background-color: #5a52e0;
+}
+
+input[type="checkbox"] {
+    margin-right: 5px;
+}

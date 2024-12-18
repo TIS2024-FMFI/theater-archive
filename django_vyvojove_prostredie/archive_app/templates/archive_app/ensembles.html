@@ -6,9 +6,9 @@
     <link rel="stylesheet" href="{%  static 'archive_app/list.css' %}">
 
     <section class="header2">
-        <h1 class="title">Predstavenia</h1>
+        <h1 class="title">Súbory</h1>
         {% if user.is_authenticated %}
-            <a href="/plays/add_play" class="btn">Pridať predstavenie</a>
+            <a href="/ensembles/add_ensemble/" class="btn">Pridať súbor</a>
         {% endif %}
     </section>
 
@@ -19,24 +19,6 @@
             <select id="abecedne" class="dropdown">
                 <option>Od a po z</option>
                 <option>Od z po a</option>
-            </select>
-        </div>
-        <div class="filter">
-            <label for="zaner">Žáner</label>
-            <select id="zaner" class="dropdown">
-                <option>-</option>
-            </select>
-        </div>
-        <div class="filter">
-            <label for="subor">Súbor</label>
-            <select id="subor" class="dropdown">
-                <option>-</option>
-            </select>
-        </div>
-        <div class="filter">
-            <label for="sezona">Sezóna</label>
-            <select id="sezona" class="dropdown">
-                <option>-</option>
             </select>
         </div>
         <div class="filter">
