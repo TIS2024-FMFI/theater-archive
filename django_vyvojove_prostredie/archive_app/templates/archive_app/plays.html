@@ -1,8 +1,58 @@
 {% extends 'archive_app/index.html' %}
-
+{% load static %}
 {% block content %}
-    <div class="container">
-        <h2 class="header2">Predstavenia</h2>
-    </div>
-    <div class ="empty-box"></div>
+<section class="content">
+    <!-- Header Section -->
+    <section class="header2">
+        <h1 class="title">Predstavenia</h1>
+        <button class="btn add-btn">Pridať predstavenie</button>
+    </section>
+
+    <!-- Filters Section -->
+    <section class="filters">
+        <div class="filter">
+            <label for="abecedne">Abecedne</label>
+            <select id="abecedne" class="dropdown">
+                <option>Od a po z</option>
+                <option>Od z po a</option>
+            </select>
+        </div>
+        <div class="filter">
+            <label for="zaner">Žáner</label>
+            <select id="zaner" class="dropdown">
+                <option>-</option>
+            </select>
+        </div>
+        <div class="filter">
+            <label for="subor">Súbor</label>
+            <select id="subor" class="dropdown">
+                <option>-</option>
+            </select>
+        </div>
+        <div class="filter">
+            <label for="sezona">Sezóna</label>
+            <select id="sezona" class="dropdown">
+                <option>-</option>
+            </select>
+        </div>
+        <div class="filter">
+            <label for="zverejnene">Zverejnené</label>
+            <select id="zverejnene" class="dropdown">
+                <option>-</option>
+            </select>
+        </div>
+        <div class="filter search">
+            <label for="key-term">Kľúčový pojem</label>
+            <input id="key-term" type="text" class="search-input" placeholder="Sem napíš pojem">
+        </div>
+        <div class="filter">
+            <button class="btn search-btn">Vyhľadať</button>
+        </div>
+    </section>
+
+    <!-- Results Section -->
+    <section class="results">
+        <p class="results-text">Nájdených 0 záznamov.</p>
+    </section>
+</section>
 {% endblock %}
