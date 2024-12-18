@@ -21,7 +21,7 @@ def list_employees(request):
     return HttpResponse('<h1>Tu budú vypísaní zamestnanci</h1>')
 
 def form_plays(request):
-    return HttpResponse('<h1>Toto bude formulár na pridanie nového predstavenia</h1>')
+    return render(request,'archive_app/form_play.html')
 
 def form_repeats(request):
     return HttpResponse('<h1>Toto bude formulár na pridanie reprízy daného predstavenia</h1>')

@@ -1,0 +1,54 @@
+{% extends 'archive_app/index.html' %}
+{% load static %}
+{% block content %}
+    <link rel="stylesheet" href="{%  static 'archive_app/form_play.css' %}">
+    <div class="form-container">
+        <h1>Nové divadelné predstavenie</h1>
+        <form>
+            <div class="form-group">
+                <label for="title">Titul:</label>
+                <input type="text" id="title" placeholder="Titul">
+                <label for="subtitle">Podtitul:</label>
+                <input type="text" id="subtitle" placeholder="Podtitul">
+            </div>
+
+            <div class="form-group">
+                <label for="author-name">Autor:</label>
+                <input type="text" id="author-name" placeholder="Meno">
+                <input type="text" id="author-surname" placeholder="Priezvisko">
+            </div>
+
+            <div class="form-group">
+                <label for="file">Súbor:</label>
+                <select id="file">
+                    <option value="1">-</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Popis:</label>
+                <textarea id="description" rows="5" placeholder="Sem píšte popis..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="genre">Žáner:</label>
+                <select id="genre">
+                    <option value="1">-</option>
+                </select>
+            </div>
+
+            <div class="form-group upload-section">
+                <label>Články a kritiky: <input type="file"></label>
+                <label>Plagát a bulletin: <input type="file"></label>
+                <label>Fotografie: <input type="file"></label>
+            </div>
+
+            <div class="form-actions">
+                <label for="publish">
+                    <input type="checkbox" id="publish"> ZVEREJNIŤ
+                </label>
+                <button type="submit" class="save-btn">Uložiť</button>
+            </div>
+        </form>
+    </div>
+{% endblock %}
