@@ -10,7 +10,7 @@
 </head>
 <body>
     <header class="header">
-        <div class="container">
+        <div class="container" style="display: flex; align-items: center;">
             <div class="logo-title">
                 <div class="logo">
                     <a href="/"><img src="{%  static 'archive_app/logo.png' %}" alt="SND Logo"></a>
@@ -23,10 +23,16 @@
                 <a href="/ensembles">Súbory</a>
                 <a href="/employees">Umelci a spolupracovníci</a>
             </nav>
-            {% if user.is_authenticated %}
-                <a href="/logout" class="login-btn">Odhlásiť sa</a>
-            {% else %}
-                <a href="/login" class="login-btn">Prihlásiť sa</a>
+            {% if request.user.is_authenticated and request.user.is_staff %}
+                <a href="{% url 'create_admin' %}" class="btn btn-primary">Pridať/vymazať administrátora</a>
             {% endif %}
+            <div style="display: flex; flex-direction: column;" class="user-data">
+            {% if user.is_authenticated %}
+                <a href="{% url 'logout' %}" class="login-btn" style="text-align: center; margin-top: 20px;">Odhlásiť sa</a>
+                <p style="color: white; font-size: 12px;">Reálne meno: {{ user.userprofile.real_name }}</p>
+            {% else %}
+                <a href="{% url 'login' %}" class="login-btn">Prihlásiť sa</a>
+            {% endif %}
+            </div>
         </div>
     </header>
