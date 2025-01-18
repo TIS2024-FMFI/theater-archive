@@ -96,6 +96,13 @@ def create_admin(request):
         real_name = request.POST.get('real_name')
         your_password = request.POST.get('your_password')
 
+        if not username or not email or not password or not confirm_password or not real_name or not your_password:
+            return render(request, 'archive_app/create_admin.html', {
+                'error': 'Všetky polia musia byť vyplnené.',
+                'users': User.objects.order_by('id'),
+                'profiles': UserProfile.objects.all(),
+            })
+        
         try:
             validate_email(email)
         except ValidationError:
