@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.db import models
 
 class Ensemble(models.Model):
@@ -162,3 +163,10 @@ class RepeatPerformer(models.Model):
 
     def __str__(self):
         return f"{self.repeat} - {self.employee_job}"
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    real_name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"{self.real_name} ({self.user.username})"

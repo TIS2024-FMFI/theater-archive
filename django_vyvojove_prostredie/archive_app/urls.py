@@ -19,5 +19,7 @@ urlpatterns = [
     path('employees/get_employee/', views.get_employee, name='get_employee'),
     path('admin_section/', views.admin_section, name='admin_section'),
     path('login/', views.login_view, name='login'),
-    path('logout/', views.logout_view, name='logout')
+    path('logout/', views.logout_view, name='logout'),
+    path('create-admin/', views.create_admin, name='create_admin'),
+    path('delete-user/<int:user_id>/', views.delete_user, name='delete_user'),
 ]

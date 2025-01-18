@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vytvorenie nového administrátora</title>
+</head>
+<body>
+    <h1>Vytvorenie nového administrátora</h1>
+    <form method="post">
+        {% csrf_token %}
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required><br><br>
+    
+        <label for="email">E-mail:</label>
+        <input type="email" id="email" name="email" required><br><br>
+    
+        <label for="password">Heslo:</label>
+        <input type="password" id="password" name="password" required><br><br>
+    
+        <label for="confirm_password">Znova zadajte heslo:</label>
+        <input type="password" id="confirm_password" name="confirm_password" required><br><br>
+    
+        <label for="real_name">Meno a priezvisko:</label>
+        <input type="text" id="real_name" name="real_name" required><br><br>
+    
+        <label for="your_password">Zadajte svoje heslo:</label>
+        <input type="password" id="your_password" name="your_password" required><br><br>
+    
+        <button type="submit">Pridať administrátora</button>
+    </form>
+    <br>
+
+    <h2>Zoznam všetkých účtov</h2>
+    {% if error %}
+    <p style="color: red;">{{ error }}</p>
+    {% endif %}
+    <table style="border-collapse: collapse; width: 100%; border: 1px solid black;">
+        <thead>
+            <tr>
+                <th style="border: 1px solid black;">ID</th>
+                <th style="border: 1px solid black;">Username</th>
+                <th style="border: 1px solid black;">Email</th>
+                <th style="border: 1px solid black;">Meno a priezvisko</th>
+                <th style="border: 1px solid black;">Akcie</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user, profile in users_profiles %}
+            <tr>
+                <td style="border: 1px solid black;">{{ forloop.counter }}</td>
+                <td style="border: 1px solid black;">{{ user.username }}</td>
+                <td style="border: 1px solid black;">{{ user.email }}</td>
+                <td style="border: 1px solid black;">
+                    {% if profile %}
+                        {{ profile.real_name }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+                <td style="border: 1px solid black;">
+                    <form method="POST" action="{% url 'delete_user' user.id %}">
+                        {% csrf_token %}
+                        <button type="submit">Odstrániť</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <br>
+    <a href="{% url 'main_page' %}">Späť na hlavnú stránku</a>
+</body>
+</html>

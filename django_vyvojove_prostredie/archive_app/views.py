@@ -2,6 +2,15 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.models import User
+from django.shortcuts import get_object_or_404
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+from django.db import models
+from .models import UserProfile
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
 
 # Create your views here.
 
@@ -72,3 +81,66 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     return redirect('main_page')
+
+def is_admin(user):
+    return user.is_staff
+
+@login_required
+@user_passes_test(is_admin)
+def create_admin(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm_password')
+        real_name = request.POST.get('real_name')
+        your_password = request.POST.get('your_password')
+
+        try:
+            validate_email(email)
+        except ValidationError:
+            return render(request, 'archive_app/create_admin.html', {
+                'error': 'E-mail nie je platný.',
+                'users_profiles': [(user, UserProfile.objects.filter(user=user).first()) for user in User.objects.order_by('id')],
+            })
+        if password != confirm_password:
+            return render(request, 'archive_app/create_admin.html', {
+                'error': 'Heslá sa nezhodujú.',
+                'users_profiles': [(user, UserProfile.objects.filter(user=user).first()) for user in User.objects.order_by('id')],
+            })
+        if not request.user.check_password(your_password):
+            return render(request, 'archive_app/create_admin.html', {
+                'error': 'Vaše heslo je nesprávne.',
+                'users_profiles': [(user, UserProfile.objects.filter(user=user).first()) for user in User.objects.order_by('id')],
+            })
+        try:
+            user = User.objects.create_user(username=username, email=email, password=password)
+            user.is_staff = True
+            user.save()
+
+            UserProfile.objects.create(user=user, real_name=real_name)
+
+            return redirect('create_admin')
+        except Exception as e:
+            return render(request, 'archive_app/create_admin.html', {
+                'error': f'Chyba pri vytváraní administrátora: {str(e)}',
+                'users_profiles': [(user, UserProfile.objects.filter(user=user).first()) for user in User.objects.order_by('id')],
+            })
+
+    return render(request, 'archive_app/create_admin.html', {
+        'users_profiles': [(user, UserProfile.objects.filter(user=user).first()) for user in User.objects.order_by('id')],
+    })
+
+@login_required
+@user_passes_test(is_admin)
+def delete_user(request, user_id):
+    if request.method == 'POST':
+        user_to_delete = get_object_or_404(User, id=user_id)
+        if user_to_delete == request.user:
+            return render(request, 'archive_app/create_admin.html', {
+                'error': 'Nemôžete odstrániť účet, pod ktorým ste prihlásený.',
+                'users': User.objects.order_by('id')
+            })
+        if not user_to_delete.is_superuser:
+            user_to_delete.delete()
+    return redirect('create_admin')
