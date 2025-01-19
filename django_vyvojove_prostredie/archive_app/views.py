@@ -146,7 +146,7 @@ def delete_user(request, user_id):
         if user_to_delete == request.user:
             return render(request, 'archive_app/create_admin.html', {
                 'error': 'Nemôžete odstrániť účet, pod ktorým ste prihlásený.',
-                'users': User.objects.order_by('id')
+                'users_profiles': [(user, UserProfile.objects.filter(user=user).first()) for user in User.objects.order_by('id')],
             })
         if not user_to_delete.is_superuser:
             user_to_delete.delete()
