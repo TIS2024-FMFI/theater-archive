@@ -11,8 +11,7 @@ from django.db import models
 from .models import UserProfile
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
-
-# Create your views here.
+from django.contrib.auth.models import Permission
 
 def main_page(request):
     return render(request, 'archive_app/index.html')
@@ -99,30 +98,25 @@ def create_admin(request):
         if not username or not email or not password or not confirm_password or not real_name or not your_password:
             return render(request, 'archive_app/create_admin.html', {
                 'error': 'Všetky polia musia byť vyplnené.',
-                'users': User.objects.order_by('id'),
-                'profiles': UserProfile.objects.all(),
-            })
-        
-        try:
-            validate_email(email)
-        except ValidationError:
-            return render(request, 'archive_app/create_admin.html', {
-                'error': 'E-mail nie je platný.',
                 'users_profiles': [(user, UserProfile.objects.filter(user=user).first()) for user in User.objects.order_by('id')],
             })
+
         if password != confirm_password:
             return render(request, 'archive_app/create_admin.html', {
                 'error': 'Heslá sa nezhodujú.',
                 'users_profiles': [(user, UserProfile.objects.filter(user=user).first()) for user in User.objects.order_by('id')],
             })
+
         if not request.user.check_password(your_password):
             return render(request, 'archive_app/create_admin.html', {
                 'error': 'Vaše heslo je nesprávne.',
                 'users_profiles': [(user, UserProfile.objects.filter(user=user).first()) for user in User.objects.order_by('id')],
             })
+
         try:
             user = User.objects.create_user(username=username, email=email, password=password)
             user.is_staff = True
+            user.is_superuser = True
             user.save()
 
             UserProfile.objects.create(user=user, real_name=real_name)
@@ -143,11 +137,17 @@ def create_admin(request):
 def delete_user(request, user_id):
     if request.method == 'POST':
         user_to_delete = get_object_or_404(User, id=user_id)
-        if user_to_delete == request.user:
+        if user_to_delete.is_superuser and User.objects.filter(is_superuser=True).count() == 1:
+            return render(request, 'archive_app/create_admin.html', {
+                'error': 'Nemôžete odstrániť hlavného superusera.',
+                'users_profiles': [(user, UserProfile.objects.filter(user=user).first()) for user in User.objects.order_by('id')],
+            })
+        if user_to_delete != request.user:
+            user_to_delete.delete()
+        else:
             return render(request, 'archive_app/create_admin.html', {
                 'error': 'Nemôžete odstrániť účet, pod ktorým ste prihlásený.',
                 'users_profiles': [(user, UserProfile.objects.filter(user=user).first()) for user in User.objects.order_by('id')],
             })
-        if not user_to_delete.is_superuser:
-            user_to_delete.delete()
+    
     return redirect('create_admin')
