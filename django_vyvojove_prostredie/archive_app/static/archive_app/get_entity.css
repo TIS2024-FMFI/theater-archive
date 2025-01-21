@@ -1,0 +1,79 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f9f9f9;
+}
+
+.content .container {
+    display: flex;
+    padding: 20px;
+}
+
+.header2 {
+    padding: 10px;
+    font-size: 1.7rem;
+    font-family: 'Helvetica', Arial, sans-serif;
+}
+
+
+/* ----------------Display category---------------- */
+/* Filters Section */
+.content {
+    margin: 20px;
+}
+
+.left-section, .right-section {
+    flex: 1;
+}
+.right-section {
+    background-color: #f4f4f4;
+    padding: 10px;
+    padding-left: 30px;
+    border-radius: 12px;
+}
+h1, h2 {
+    font-size: 1.5em;
+    margin-bottom: 10px;
+}
+label {
+    font-weight: bold;
+    display: block;
+    margin-top: 15px;
+}
+.content {
+            margin-top: 5px;
+            padding: 5px 0;
+        }
+.team-list {
+    margin-top: 20px;
+}
+.team-item {
+    margin-bottom: 10px;
+}
+.obsadenie-list {
+    margin-top: 20px;
+}
+.obsadenie-item {
+    margin-bottom: 10px;
+}
+.action-buttons {
+    gap: 10px;
+    margin-top: 20px;
+}
+button {
+    padding: 8px 15px;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+    background-color: #333;
+    font-weight: bold;
+    color: #fff;
+    font-family: 'Helvetica', Arial, sans-serif;
+    margin-left: auto;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color:  #666;
+}

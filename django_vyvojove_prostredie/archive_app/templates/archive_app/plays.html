@@ -56,6 +56,9 @@
 
     <!-- Results Section -->
     <section class="results">
+        {% for play in plays %}
+            <a href="{% url 'get_play' play.id %}" class="item"> {{ play.title }} </a>
+        {% endfor %}
         <p class="results-text">Nájdených 0 záznamov.</p>
     </section>
 </section>

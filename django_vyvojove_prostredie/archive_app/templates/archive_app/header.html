@@ -24,7 +24,7 @@
                 <a href="/employees">Umelci a spolupracovníci</a>
             </nav>
             {% if request.user.is_authenticated and request.user.is_staff %}
-                <a href="{% url 'create_admin' %}" class="btn btn-primary">Pridať/vymazať administrátora</a>
+                <a href="{% url 'create_admin' %}" class="login-btn">Pridať/vymazať administrátora</a>
             {% endif %}
             <div style="display: flex; flex-direction: column;" class="user-data">
             {% if user.is_authenticated %}

@@ -1,0 +1,92 @@
+{% extends 'archive_app/index.html' %}
+{% load static %}
+{% block content %}
+<link rel="stylesheet" href="{%  static 'archive_app/get_entity.css' %}">
+<section class="content">
+    <h1>{{ play.title }}</h1>
+    {% if request.user.is_authenticated and request.user.is_staff %}
+    <div class="action-buttons" >
+        <button class="edit">Upraviť</button>
+        <button class="copy">Vytvoriť kópiu</button>
+    </div>
+    {% endif %}
+    <div class="container">
+        <div class="left-section">
+            <p><em>{{ play.genre_type }}</em></p>
+            <label for="author">Autor:</label>
+            <div class="content">{{ play.author_first_name }} {{ play.author_last_name }}</div>
+
+            <label for="premiere">Premiéra:</label>
+            <div class="content">(dátum)</div>
+
+            <div class="label">Derniera:</div>
+            <div class="content">(dátum)</div>
+
+            <div class="label">Popis:</div>
+            <div class="content">{{ play.description }}</div>
+
+            <div class="label">Miesto:</div>
+            <div class="content">(napr. NB)</div>
+
+            <div class="team-list">
+                <h2>Insenačný tím:</h2>
+                <div class="team-item">
+                    <div class="label">Dirigent:</div>
+                    <div class="content">(meno/mená)</div>
+                </div>
+                <!-- ostatne inscenacne picoviny pridat SEM -->
+            </div>
+        </div>
+
+        <div class="right-section">
+            <h2>Obsadenie</h2>
+            <div class="obsadenie-list">
+                <div class="obsadenie-item">
+                    <strong>Postava 1:</strong> umelec 1
+                </div>
+                <!-- ostatne obsadenie picoviny pridat SEM -->
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+
+    <div class="container">
+        <div class="left-section">
+            <div class="label">Počet repríz:</div>
+            <div class="content">(číslo)</div>
+
+            <div class="label">Dátumy repríz:</div>
+            <div class="date-box">
+                <ul>
+                    <li>12.03.2002</li>
+                    <li>15.03.2002</li>
+                    <li>22.03.2002</li>
+                    <li>...</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="right-section">
+            <div class="label">Články a kritiky:</div>
+            <div class="pdf-link">
+                <div class="pdf-icon">PDF</div>
+                <a href="#" target="_blank">Stiahnuť článok</a>
+            </div>
+
+            <div class="label">Plagát a bulletin:</div>
+            <div class="pdf-link">
+                <div class="pdf-icon">PDF</div>
+                <a href="#" target="_blank">Stiahnuť bulletin</a>
+            </div>
+
+            <div class="label">Fotografie:</div>
+            <div class="photo-gallery">
+                <div class="photo">Foto 1</div>
+                <div class="photo">Foto 2</div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

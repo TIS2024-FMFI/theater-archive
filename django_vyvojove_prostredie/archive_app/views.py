@@ -8,16 +8,24 @@ from django.shortcuts import get_object_or_404
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.db import models
-from .models import UserProfile
+from .models import *
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import Permission
+from typing import Type, Optional, Dict, Any
+
+
+def get_all(model: Type[models.Model], filters: Optional[Dict[str, Any]] = None):
+    if filters is None:
+        filters = {}
+    return model.objects.filter(**filters)
 
 def main_page(request):
     return render(request, 'archive_app/index.html')
 
 def list_plays(request):
-    return render(request, 'archive_app/plays.html')
+    plays = get_all(Play)
+    return render(request, 'archive_app/plays.html', {'plays':plays})
 
 def list_concerts_and_events(request):
     return render(request, 'archive_app/concerts.html')
@@ -43,8 +51,9 @@ def form_ensembles(request):
 def form_employees(request):
     return HttpResponse('<h1>Toto bude formulár na pridanie nového zamestnanca</h1>')
 
-def get_play(request):
-    return HttpResponse('<h1>Tu budeme vidieť konkrétne predstavenie</h1>')
+def get_play(request, id):
+    entity = get_object_or_404(Play, pk=id)
+    return render(request, 'archive_app/get_play.html', {'play': entity})
 
 def get_repeat(request):
     return HttpResponse('<h1>Tu budeme vidieť konkrétnu reprízu daného predstavenia</h1>')
