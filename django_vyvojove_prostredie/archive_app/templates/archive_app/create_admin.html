@@ -38,7 +38,7 @@
     <table style="border-collapse: collapse; width: 100%; border: 1px solid black;">
         <thead>
             <tr>
-                <th style="border: 1px solid black;">ID</th>
+                <th style="border: 1px solid black;">#</th>
                 <th style="border: 1px solid black;">Username</th>
                 <th style="border: 1px solid black;">Email</th>
                 <th style="border: 1px solid black;">Meno a priezvisko</th>
@@ -46,26 +46,26 @@
             </tr>
         </thead>
         <tbody>
-            {% for user, profile in users_profiles %}
+            {% for index, user_profile in users_profiles %}
             <tr>
-                <td style="border: 1px solid black;">{{ user.id }}</td>
-                <td style="border: 1px solid black;">{{ user.username }}</td>
-                <td style="border: 1px solid black;">{{ user.email }}</td>
+                <td style="border: 1px solid black;">{{ index }}</td>
+                <td style="border: 1px solid black;">{{ user_profile.0.username }}</td>
+                <td style="border: 1px solid black;">{{ user_profile.0.email }}</td>
                 <td style="border: 1px solid black;">
-                    {% if profile %}
-                        {{ profile.real_name }}
+                    {% if user_profile.1 %}
+                        {{ user_profile.1.real_name }}
                     {% else %}
                         N/A
                     {% endif %}
                 </td>
                 <td style="border: 1px solid black;">
-                    {% if not user.is_superuser or user.id != request.user.id %}
-                    <form method="POST" action="{% url 'delete_user' user.id %}">
-                        {% csrf_token %}
-                        <button type="submit">Odstrániť</button>
-                    </form>
+                    {% if not user_profile.0.is_superuser or user_profile.0 != user %}
+                        <form method="POST" action="{% url 'delete_user' user_profile.0.id %}">
+                            {% csrf_token %}
+                            <button type="submit">Odstrániť</button>
+                        </form>
                     {% else %}
-                    N/A
+                        N/A
                     {% endif %}
                 </td>
             </tr>

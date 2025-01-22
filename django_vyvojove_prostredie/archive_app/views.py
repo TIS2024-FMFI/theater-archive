@@ -87,6 +87,8 @@ def is_admin(user):
 @login_required
 @user_passes_test(is_admin)
 def create_admin(request):
+    error_message = None
+    success_message = None
     if request.method == 'POST':
         username = request.POST.get('username')
         email = request.POST.get('email')
@@ -94,60 +96,56 @@ def create_admin(request):
         confirm_password = request.POST.get('confirm_password')
         real_name = request.POST.get('real_name')
         your_password = request.POST.get('your_password')
-
         if not username or not email or not password or not confirm_password or not real_name or not your_password:
-            return render(request, 'archive_app/create_admin.html', {
-                'error': 'Všetky polia musia byť vyplnené.',
-                'users_profiles': [(user, UserProfile.objects.filter(user=user).first()) for user in User.objects.order_by('id')],
-            })
-
-        if password != confirm_password:
-            return render(request, 'archive_app/create_admin.html', {
-                'error': 'Heslá sa nezhodujú.',
-                'users_profiles': [(user, UserProfile.objects.filter(user=user).first()) for user in User.objects.order_by('id')],
-            })
-
-        if not request.user.check_password(your_password):
-            return render(request, 'archive_app/create_admin.html', {
-                'error': 'Vaše heslo je nesprávne.',
-                'users_profiles': [(user, UserProfile.objects.filter(user=user).first()) for user in User.objects.order_by('id')],
-            })
-
-        try:
-            user = User.objects.create_user(username=username, email=email, password=password)
-            user.is_staff = True
-            user.is_superuser = True
-            user.save()
-
-            UserProfile.objects.create(user=user, real_name=real_name)
-
-            return redirect('create_admin')
-        except Exception as e:
-            return render(request, 'archive_app/create_admin.html', {
-                'error': f'Chyba pri vytváraní administrátora: {str(e)}',
-                'users_profiles': [(user, UserProfile.objects.filter(user=user).first()) for user in User.objects.order_by('id')],
-            })
-
+            error_message = 'Všetky polia musia byť vyplnené.'
+        elif password != confirm_password:
+            error_message = 'Heslá sa nezhodujú.'
+        elif not request.user.check_password(your_password):
+            error_message = 'Vaše heslo je nesprávne.'
+        else:
+            try:
+                user = User.objects.create_user(username=username, email=email, password=password)
+                user.is_staff = True
+                user.save()
+                UserProfile.objects.create(user=user, real_name=real_name)
+                success_message = f'Používateľ {username} bol úspešne pridaný.'
+                return redirect('create_admin')
+            except Exception as e:
+                error_message = f'Chyba pri vytváraní používateľa: {str(e)}'
+    users_profiles = enumerate(
+        [(user, UserProfile.objects.filter(user=user).first()) for user in User.objects.order_by('id')],
+        start=1
+    )
     return render(request, 'archive_app/create_admin.html', {
-        'users_profiles': [(user, UserProfile.objects.filter(user=user).first()) for user in User.objects.order_by('id')],
+        'error': error_message,
+        'success': success_message,
+        'users_profiles': users_profiles,
     })
 
 @login_required
 @user_passes_test(is_admin)
 def delete_user(request, user_id):
+    error_message = None
+    success_message = None
     if request.method == 'POST':
-        user_to_delete = get_object_or_404(User, id=user_id)
-        if user_to_delete.is_superuser and User.objects.filter(is_superuser=True).count() == 1:
-            return render(request, 'archive_app/create_admin.html', {
-                'error': 'Nemôžete odstrániť hlavného superusera.',
-                'users_profiles': [(user, UserProfile.objects.filter(user=user).first()) for user in User.objects.order_by('id')],
-            })
-        if user_to_delete != request.user:
-            user_to_delete.delete()
-        else:
-            return render(request, 'archive_app/create_admin.html', {
-                'error': 'Nemôžete odstrániť účet, pod ktorým ste prihlásený.',
-                'users_profiles': [(user, UserProfile.objects.filter(user=user).first()) for user in User.objects.order_by('id')],
-            })
-    
-    return redirect('create_admin')
+        try:
+            user_to_delete = get_object_or_404(User, id=user_id)
+            if user_to_delete.is_superuser and User.objects.filter(is_superuser=True).count() == 1:
+                error_message = 'Nemôžete odstrániť hlavného superusera. Aspoň jeden superuser musí zostať.'
+            elif user_to_delete == request.user:
+                error_message = 'Nemôžete odstrániť účet, pod ktorým ste prihlásený.'
+            else:
+                user_to_delete.delete()
+                success_message = f'Používateľ {user_to_delete.username} bol úspešne odstránený.'
+                return redirect('create_admin')
+        except Exception as e:
+            error_message = f'Chyba pri odstraňovaní používateľa: {str(e)}'
+    users_profiles = enumerate(
+        [(user, UserProfile.objects.filter(user=user).first()) for user in User.objects.order_by('id')],
+        start=1
+    )
+    return render(request, 'archive_app/create_admin.html', {
+        'error': error_message,
+        'success': success_message,
+        'users_profiles': users_profiles,
+    })
