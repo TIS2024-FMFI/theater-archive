@@ -25,6 +25,7 @@ class Room(models.Model):
 
 
 class Play(models.Model):
+    id = models.AutoField(primary_key=True)
     title = models.CharField(max_length=200)
     author_first_name = models.CharField(max_length=100, null=True, blank=True)
     author_last_name = models.CharField(max_length=100, null=True, blank=True)
