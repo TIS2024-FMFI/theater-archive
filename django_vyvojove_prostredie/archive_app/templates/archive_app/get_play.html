@@ -4,6 +4,7 @@
 <link rel="stylesheet" href="{%  static 'archive_app/get_entity.css' %}">
 <section class="content">
     <h1>{{ play.title }}</h1>
+    <hr>
     {% if request.user.is_authenticated and request.user.is_staff %}
     <div class="action-buttons" >
         <button class="edit">Upraviť</button>
@@ -17,22 +18,39 @@
             <div class="content">{{ play.author_first_name }} {{ play.author_last_name }}</div>
 
             <label for="premiere">Premiéra:</label>
-            <div class="content">(dátum)</div>
+            <div class="content">
+                {% for rep in repeats %}
+                    {% if rep.repeat_type.name == "Premiéra" %}
+                        <p>{{ rep.date }}</p>
+                    {% endif %}
+                {% endfor %}
+            </div>
 
-            <div class="label">Derniera:</div>
-            <div class="content">(dátum)</div>
+            <label class="label">Derniera:</label>
+            <div class="content">
+                {% for rep in repeats %}
+                    {% if rep.repeat_type == "Derniéra" %}
+                        <p>{{ rep.date }}</p>
+                    {% endif %}
+                {% endfor %}
+            </div>
 
-            <div class="label">Popis:</div>
+            <label class="label">Popis:</label>
             <div class="content">{{ play.description }}</div>
 
-            <div class="label">Miesto:</div>
-            <div class="content">(napr. NB)</div>
+{#            <label class="label">Miesto:</label>#}
+{#            <div class="content">{{ play.description }}</div>#}
 
             <div class="team-list">
-                <h2>Insenačný tím:</h2>
+                <h2>Insenačný tím</h2>
                 <div class="team-item">
-                    <div class="label">Dirigent:</div>
-                    <div class="content">(meno/mená)</div>
+                    {% for job, people in production.items %}
+                        <label class="label">{{ job.name }}:</label>
+                        {% for p in people %}
+                            <div class="content"> &emsp; {{ p.first_name }} {{ p.last_name }} </div>
+                        {% endfor %}
+                    {% endfor %}
+
                 </div>
                 <!-- ostatne inscenacne picoviny pridat SEM -->
             </div>
@@ -42,7 +60,12 @@
             <h2>Obsadenie</h2>
             <div class="obsadenie-list">
                 <div class="obsadenie-item">
-                    <strong>Postava 1:</strong> umelec 1
+                    {% for role, actors in performers.items %}
+                        <strong>{{ role }}</strong>
+                        {% for actor in actors %}
+                            <br> &emsp;<a href="{% url 'get_employee' actor.id %}" class="item">{{ actor.first_name }} {{ actor.last_name }} </a>
+                        {% endfor %}
+                    {% endfor %}
                 </div>
                 <!-- ostatne obsadenie picoviny pridat SEM -->
             </div>
@@ -55,20 +78,19 @@
     <div class="container">
         <div class="left-section">
             <div class="label">Počet repríz:</div>
-            <div class="content">(číslo)</div>
+            <div class="content">{{ repeats.count }}</div>
 
             <div class="label">Dátumy repríz:</div>
             <div class="date-box">
                 <ul>
-                    <li>12.03.2002</li>
-                    <li>15.03.2002</li>
-                    <li>22.03.2002</li>
-                    <li>...</li>
+                    {% for rep in repeats %}
+                        <li><a href="{% url 'get_repeat' play.id rep.id %}" class="item"> {{ rep.date }} </a></li>
+                    {% endfor %}
                 </ul>
             </div>
         </div>
 
-        <div class="right-section">
+        <div class="photos-right-section">
             <div class="label">Články a kritiky:</div>
             <div class="pdf-link">
                 <div class="pdf-icon">PDF</div>

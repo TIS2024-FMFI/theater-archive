@@ -1,0 +1,43 @@
+{% extends 'archive_app/index.html' %}
+{% load static %}
+{% block content %}
+<link rel="stylesheet" href="{%  static 'archive_app/get_entity.css' %}">
+<section class="content">
+    <h1>{{ ensemble.name }}</h1>
+    <hr>
+    {% if request.user.is_authenticated and request.user.is_staff %}
+    <div class="action-buttons" >
+        <button class="edit">Upraviť</button>
+        <button class="copy">Vytvoriť kópiu</button>
+    </div>
+    {% endif %}
+    <div class="container">
+        <div class="section">
+            <p><em>{{ play.genre_type }}</em></p>
+
+            <label for="premiere">Dátum začiatku pôsobenia:</label>
+            <div class="content"> {{ ensemble.foundation_date }} </div>
+
+            {% if ensemble.dissolution_date %}
+            <label for="premiere">Dátum ukončenia pôsobenia:</label>
+            <div class="content"> {{ ensemble.dissolution_date }} </div>
+            {% endif %}
+
+            <label class="label">Popis:</label>
+            <div class="content">{{ play.description }}</div>
+
+            <h2>Osobnosti</h2>
+            <div class="obsadenie-list">
+                <ul class="list_ensemble_people ">
+                    {% for p in people %}
+                        <li class="list_ensemble_people"><a href="{% url 'get_employee' p.id %}" class="item">{{ p.first_name }} {{ p.last_name }} </a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+
+        </div>
+    </div>
+
+</section>
+{% endblock %}

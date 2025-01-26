@@ -1,0 +1,50 @@
+{% extends 'archive_app/index.html' %}
+{% load static %}
+{% block content %}
+<link rel="stylesheet" href="{%  static 'archive_app/get_entity.css' %}">
+<section class="content">
+    <div class="title-with-subheading">
+        <h1> {{ play.title }} </h1>
+        <h2> {{ repeat.repeat_type }} </h2>
+    </div>
+    <hr>
+    {% if request.user.is_authenticated and request.user.is_staff %}
+    <div class="action-buttons" >
+        <button class="edit">Upraviť</button>
+        <button class="copy">Vytvoriť kópiu</button>
+    </div>
+    {% endif %}
+    <div class="container">
+        <div class="left-section">
+            <p><em>{{ play.genre_type }}</em></p>
+            <label for="label">Autor:</label>
+            <div class="content">{{ play.author_first_name }} {{ play.author_last_name }}</div>
+
+            <label class="label">Popis:</label>
+            <div class="content">{{ play.description }}</div>
+
+            <label class="label">Miesto:</label>
+            <div class="content">{{ repeat.room }}</div>
+
+
+        </div>
+        <div class="right-section">
+            <h2>Obsadenie</h2>
+            <div class="obsadenie-list">
+                <div class="obsadenie-item">
+                    {% for role, actors in performers.items %}
+                        <strong>{{ role }}</strong>
+                        {% for actor in actors %}
+                            <br> &emsp; {{ actor.first_name }} {{ actor.last_name }}
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+                <!-- ostatne obsadenie picoviny pridat SEM -->
+            </div>
+        </div>
+    </div>
+
+
+
+</section>
+{% endblock %}

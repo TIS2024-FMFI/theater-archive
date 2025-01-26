@@ -13,6 +13,7 @@ from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import Permission
 from typing import Type, Optional, Dict, Any
+from itertools import chain
 
 
 def get_all(model: Type[models.Model], filters: Optional[Dict[str, Any]] = None):
@@ -28,13 +29,16 @@ def list_plays(request):
     return render(request, 'archive_app/plays.html', {'plays':plays})
 
 def list_concerts_and_events(request):
-    return render(request, 'archive_app/concerts.html')
+    concerts = get_all(Concert)
+    return render(request, 'archive_app/concerts.html', {'concerts':concerts})
 
 def list_ensembles(request):
-    return render(request, 'archive_app/ensembles.html')
+    ensembles = get_all(Ensemble)
+    return render(request, 'archive_app/ensembles.html', {'ensembles':ensembles})
 
 def list_employees(request):
-    return render(request, 'archive_app/employees.html')
+    employees = get_all(Employee)
+    return render(request, 'archive_app/employees.html', {'employees': employees})
 
 def form_plays(request):
     return render(request,'archive_app/form_play.html')
@@ -52,20 +56,95 @@ def form_employees(request):
     return HttpResponse('<h1>Toto bude formulár na pridanie nového zamestnanca</h1>')
 
 def get_play(request, id):
-    entity = get_object_or_404(Play, pk=id)
-    return render(request, 'archive_app/get_play.html', {'play': entity})
+    play = get_object_or_404(Play, pk=id)
+    repeats = Repeat.objects.filter(play=play)
 
-def get_repeat(request):
-    return HttpResponse('<h1>Tu budeme vidieť konkrétnu reprízu daného predstavenia</h1>')
+    # production = PlayPerformer.objects.filter(play=play)
+    qs_roles = PlayPerformer.objects.filter(play=play)
+    production = dict()
+    for rp in qs_roles:
+        job = rp.employee_job.job
+        employee = rp.employee
+        if job not in production:
+            production[job] = []
+        production[job].append(employee)
 
-def get_concert_or_event(request):
-    return HttpResponse('<h1>Tu budeme vidieť konkrétny koncert alebo predstavenie</h1>')
+    qs = RepeatPerformer.objects.filter(repeat__in=repeats)
+    performers = dict()
+    for rp in qs:
+        job = rp.employee_job.job
+        employee = rp.employee_job.employee
+        if job not in performers:
+            performers[job] = []
+        performers[job].append(employee)
 
-def get_ensemble(request):
-    return HttpResponse('<h1>Tu budeme vidieť konkrétny súbor</h1>')
+    return render(request, 'archive_app/get_play.html', {
+        'play': play, 'repeats':repeats, 'production':production, 'performers':performers
+    })
 
-def get_employee(request):
-    return HttpResponse('<h1>Tu budeme vidieť konkrétneho zamestnanca</h1>')
+def get_repeat(request, id_play, id_repeat):
+    play = get_object_or_404(Play, pk=id_play)
+    repeat = get_object_or_404(Repeat, pk=id_repeat)
+
+    qs = RepeatPerformer.objects.filter(repeat=repeat)
+    performers = dict()
+    for rp in qs:
+        job = rp.employee_job.job
+        employee = rp.employee_job.employee
+        if job not in performers:
+            performers[job] = []
+        performers[job].append(employee)
+
+    return render(request, 'archive_app/get_repeat.html', {
+        'play': play, 'repeat':repeat, 'performers':performers
+    })
+
+def get_concert_or_event(request, id_concert):
+    concert = get_object_or_404(Concert, pk=id_concert)
+
+    qs = ConcertPerformer.objects.filter(concert=concert)
+    production = dict()
+    for rp in qs:
+        job = rp.job
+        employee = rp.employee
+        if job not in production:
+            production[job] = []
+        production[job].append(employee)
+
+    return render(request, 'archive_app/get_concert.html', {
+        'concert': concert, 'production':production
+    })
+
+def get_ensemble(request, id):
+    ensemble = get_object_or_404(Ensemble, pk=id)
+    qs = Employee.objects.filter(ensemble=ensemble)
+
+    return render(request, 'archive_app/get_ensemble.html', {
+        'ensemble': ensemble, 'people': qs
+    })
+
+def get_employee(request, id):
+    employee = get_object_or_404(Employee, pk=id)
+
+    # if in production
+    productions = Play.objects.filter(
+        playperformer__employee_job__employee=employee
+    ).distinct().order_by('title')
+
+    # if in play
+    plays = Play.objects.filter(
+        repeat__repeatperformer__employee_job__employee=employee
+    ).distinct().order_by('title')
+
+    plays = list(chain(plays, productions))
+
+    concerts = Concert.objects.filter(
+        concertperformer__employee=employee
+    ).distinct().order_by('name')
+
+    return render(request, 'archive_app/get_employee.html', {
+        'employee':employee, 'plays':plays , 'concerts':concerts
+    })
 
 def admin_section(request):
     return HttpResponse('<h1>Tu sa budú spravovať ďalšie funkcionality administrátora</h1>')

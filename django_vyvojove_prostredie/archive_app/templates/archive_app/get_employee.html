@@ -1,0 +1,89 @@
+{% extends 'archive_app/index.html' %}
+{% load static %}
+{% block content %}
+<link rel="stylesheet" href="{%  static 'archive_app/get_entity.css' %}">
+<section class="content">
+    <div class="title-with-subheading">
+        <h1> {{ employee.first_name }} </h1>
+        <h1> {{ employee.last_name }} </h1>
+    </div>
+    <hr>
+    <div class="title-with-subheading">
+        {% for role in roles %}
+            <h2>{{ role.job }}</h2>
+            <p> {{ role.date_start }} {% if role.date_end %} - {{ role.date_end }} {% endif %} </p>
+        {% endfor %}
+    </div>
+    {% if request.user.is_authenticated and request.user.is_staff %}
+    <div class="action-buttons" >
+        <button class="edit">Upraviť</button>
+        <button class="copy">Vytvoriť kópiu</button>
+    </div>
+    {% endif %}
+    <div class="container-profile">
+        <div class="profile">
+             <p><em> {{ employee_type }} </em></p>
+
+            <div class="profile_img">
+{#                <img src="{{ employee.profile_image.url }}" alt="Profile Image" />#}
+                <img style="max-width: 700px" src="{%  static 'archive_app/profile.jpg' %}" alt="Profile Image" />
+            </div>
+
+            <div class="profile_info">
+                <div>
+                    <label for="label">Dátum narodenia:</label>
+                    <div class="content">{{ employee.date_of_birth }}</div>
+
+                    <label class="label">Miesto narodenia:</label>
+                    <div class="content">{{ employee.place_of_birth }}</div>
+
+                    <label class="label">Súbor:</label>
+                    <div class="content">{{ employee.ensemble }}</div>
+                </div>
+
+                <div>
+                    <label class="label">Popis:</label>
+                    <div class="content">{{ employee.description }}</div>
+                </div>`
+            </div>
+
+
+        </div>
+         <div>{{ plays.count }}</div>
+
+        <hr>
+        {% if plays %}
+        <div class="right-section">
+            <h2>Divadelné hry</h2>
+            <div class="obsadenie-list">
+                <div class=date-box>
+                    <ul>
+                    {% for play in plays %}
+                        <li><a href="{% url 'get_play' play.id %}" class="item"> {{ play }} </a></li>
+                    {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if concerts %}
+        <div class="right-section">
+            <h2>Koncerty a podujatia</h2>
+            <div class="obsadenie-list">
+                <div class=date-box>
+                    <ul>
+                    {% for c in concerts %}
+                        <li><a href="{% url 'get_concert_or_event' c.id %}" class="item"> {{ c }} </a></li>
+                    {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+
+
+</section>
+{% endblock %}

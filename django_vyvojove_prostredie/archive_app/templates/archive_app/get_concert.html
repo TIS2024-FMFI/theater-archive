@@ -1,0 +1,47 @@
+{% extends 'archive_app/index.html' %}
+{% load static %}
+{% block content %}
+<link rel="stylesheet" href="{%  static 'archive_app/get_entity.css' %}">
+<section class="content">
+    <div class="title-with-subheading">
+        <h1> {{ concert.name }} </h1>
+        <h2> {{ concert.concert_type }} </h2>
+    </div>
+    <hr>
+    {% if request.user.is_authenticated and request.user.is_staff %}
+    <div class="action-buttons" >
+        <button class="edit">Upraviť</button>
+        <button class="copy">Vytvoriť kópiu</button>
+    </div>
+    {% endif %}
+    <div class="container">
+        <div class="left-section">
+            <label class="label">Dátum:</label>
+            <div class="content">{{ concert.date }}</div>
+
+            <label class="label">Popis:</label>
+            <div class="content">{{ concert.description }}</div>
+
+
+        </div>
+
+        <div class="right-section">
+            <h2>Účinkujúci</h2>
+            <div class="obsadenie-list">
+                <div class="obsadenie-item">
+                   {% for role, people in production.items %}
+                        <strong>{{ role }}</strong>
+                        {% for p in people %}
+                            <br> &emsp;<a href="{% url 'get_employee' p.id %}" class="item">{{ p.first_name }} {{ p.last_name }} </a>
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+                <!-- ostatne obsadenie picoviny pridat SEM -->
+            </div>
+        </div>
+    </div>
+
+
+
+</section>
+{% endblock %}
