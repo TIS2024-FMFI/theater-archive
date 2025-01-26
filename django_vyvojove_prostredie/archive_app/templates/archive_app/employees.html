@@ -56,7 +56,10 @@
 
     <!-- Results Section -->
     <section class="results">
-        <p class="results-text">Nájdených 0 záznamov.</p>
+        {% for e in employees %}
+            <div><a href="{% url 'get_employee' e.id %}" class="item"> {{ e.first_name }} {{ e.last_name }} </a></div>
+        {% endfor %}
+        <p class="results-text">Nájdených {{ employees.count }} záznamov.</p>
     </section>
 </section>
 {% endblock %}

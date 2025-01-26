@@ -45,7 +45,10 @@
 
     <!-- Results Section -->
     <section class="results">
-        <p class="results-text">Nájdených 0 záznamov.</p>
+        {% for c in concerts %}
+            <div><a href="{% url 'get_concert_or_event' c.id %}" class="item"> {{ c.name }} </a></div>
+        {% endfor %}
+        <p class="results-text">Nájdených {{ concerts.count }} záznamov.</p>
     </section>
 </section>
 {% endblock %}

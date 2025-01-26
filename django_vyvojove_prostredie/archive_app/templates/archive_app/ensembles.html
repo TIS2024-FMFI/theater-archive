@@ -38,7 +38,10 @@
 
     <!-- Results Section -->
     <section class="results">
-        <p class="results-text">Nájdených 0 záznamov.</p>
+        {% for e in ensembles %}
+            <div><a href="{% url 'get_ensemble' e.id %}" class="item"> {{ e.name }} </a></div>
+        {% endfor %}
+        <p class="results-text">Nájdených {{ ensembles.count }} záznamov.</p>
     </section>
 </section>
 {% endblock %}
