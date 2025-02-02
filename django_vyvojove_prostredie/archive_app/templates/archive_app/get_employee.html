@@ -10,8 +10,10 @@
     <hr>
     <div class="title-with-subheading">
         {% for role in roles %}
-            <h2>{{ role.job }}</h2>
-            <p> {{ role.date_start }} {% if role.date_end %} - {{ role.date_end }} {% endif %} </p>
+            {% if role.job.play_character %}
+                <h2>{{ role.job }}</h2>
+                <p> {{ role.date_start }} {% if role.date_end %} - {{ role.date_end }} {% endif %} </p>
+            {% endif %}
         {% endfor %}
     </div>
     {% if request.user.is_authenticated and request.user.is_staff %}

@@ -11,7 +11,7 @@ urlpatterns = [
     path('plays/get_play/add_repeat/', views.form_repeats, name='form_repeats'),
     path('concerts_and_events/add_concert_or_event/', views.form_concerts_and_events, name='form_concerts_and_events'),
     path('ensembles/add_ensemble/', views.form_ensembles, name='form_ensembles'),
-    path('employees/add_employee/', views.form_employees, name='form_employees'),
+    
     path('plays/get_play/<int:id>', views.get_play, name='get_play'),
     path('plays/get_play/<int:id_play>/get_repeat/<int:id_repeat>', views.get_repeat, name='get_repeat'),
     path('concerts_and_events/get_concert_or_event/<int:id_concert>', views.get_concert_or_event, name='get_concert_or_event'),
@@ -22,4 +22,6 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('create-admin/', views.create_admin, name='create_admin'),
     path('delete-user/<int:user_id>/', views.delete_user, name='delete_user'),
+ 
+    path('employees/add_employee/', views.form_employees, name='form_employees'),
 ]

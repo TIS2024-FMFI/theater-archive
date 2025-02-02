@@ -14,6 +14,7 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.models import Permission
 from typing import Type, Optional, Dict, Any
 from itertools import chain
+from .forms import EmployeeForm
 
 
 def get_all(model: Type[models.Model], filters: Optional[Dict[str, Any]] = None):
@@ -52,8 +53,15 @@ def form_concerts_and_events(request):
 def form_ensembles(request):
     return HttpResponse('<h1>Toto bude formulár na pridanie nového súboru</h1>')
 
-def form_employees(request):
-    return HttpResponse('<h1>Toto bude formulár na pridanie nového zamestnanca</h1>')
+def form_employees(request): #virtualmachine44
+    if request.method == 'POST':
+        form = EmployeeForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('employee_list')  # Redirect to a view that lists employees
+    else:
+        form = EmployeeForm()
+    return render(request, 'archive_app/form_employee.html', {'form': form})
 
 def get_play(request, id):
     play = get_object_or_404(Play, pk=id)
@@ -126,6 +134,8 @@ def get_ensemble(request, id):
 def get_employee(request, id):
     employee = get_object_or_404(Employee, pk=id)
 
+    roles = EmployeeJob.objects.filter(employee=employee)
+
     # if in production
     productions = Play.objects.filter(
         playperformer__employee_job__employee=employee
@@ -143,7 +153,7 @@ def get_employee(request, id):
     ).distinct().order_by('name')
 
     return render(request, 'archive_app/get_employee.html', {
-        'employee':employee, 'plays':plays , 'concerts':concerts
+        'employee':employee, 'plays':plays , 'concerts':concerts, 'roles':roles
     })
 
 def admin_section(request):

@@ -1,0 +1,78 @@
+{% extends 'archive_app/index.html' %}
+{% load static %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pridanie umelca</title>
+    <link rel="stylesheet" href="{% static 'archive_app/form_employee.css' %}">
+</head>
+<body>
+    <h1>Pridanie umelca</h1>
+    <hr>
+    <form method="post">
+        {% csrf_token %}
+        <p>
+            <label for="id_first_name">Meno:</label>
+            {{ form.first_name }}
+        </p>
+        <p>
+            <label for="id_last_name">Priezvisko:</label>
+            {{ form.last_name }}
+        </p>
+
+        <h2>Zaradenie / odbor:</h2>
+        <p>
+            <label for="id_job">Job:</label>
+            {{ employee_job_form.job }}
+        </p>
+        <h2>Dátumy zamestnania:</h2>
+        <p>
+            <label for="id_date_start">Začiatok:</label>
+            {{ employee_job_form.date_start }}
+        </p>
+        <p>
+            <label for="id_date_end">Koniec:</label>
+            {{ employee_job_form.date_end }}
+        </p>
+
+
+        <p>
+            <label for="id_publicity">Zverejniť:</label>
+            {{ form.publicity }}
+        </p>
+        <button type="submit">Uložiť</button>
+        <button type="button" onclick="addJob()">+</button>
+    </form>
+    <script>
+        function addJob() {
+            const form = document.querySelector('form');
+            const jobForm = `
+                <h2>Zaradenie / odbor:</h2>
+                <p>
+                    <label for="id_job">Job:</label>
+                    <select name="job" id="id_job">
+                        {% for job in jobs %}
+                            <option value="{{ job.id }}">{{ job.name }}</option>
+                        {% endfor %}
+                    </select>
+                </p>
+                <h2>Dátumy zamestnania:</h2>
+                <p>
+                    <label for="id_date_start">Začiatok:</label>
+                    <input type="date" name="date_start" id="id_date_start">
+                </p>
+                <p>
+                    <label for="id_date_end">Koniec:</label>
+                    <input type="date" name="date_end" id="id_date_end">
+                </p>
+            `;
+            form.insertAdjacentHTML('beforeend', jobForm);
+        }
+    </script>
+
+    </form>
+</body>
+</html>
+{% endblock %}
