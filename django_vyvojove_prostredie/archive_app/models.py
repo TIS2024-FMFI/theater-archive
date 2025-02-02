@@ -77,13 +77,19 @@ class EmployeeType(models.Model):
 
 class Employee(models.Model):
     id = models.AutoField(primary_key=True)
+    ensemble = models.ForeignKey('Ensemble', on_delete=models.SET_NULL, null=True)
+    employee_type = models.ForeignKey('EmployeeType', on_delete=models.SET_NULL, null=True)
+    genre_type = models.ForeignKey('GenreType', on_delete=models.SET_NULL, null=True) #vm44
+    #document = models.ForeignKey('', on_delete=models.SET_NULL, null=True) #vm44
+
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     date_of_birth = models.DateField()
+    date_of_death = models.DateField() #vm44
     place_of_birth = models.CharField(max_length=100, null=True, blank=True)
-    description = models.TextField(null=True, blank=True)
-    ensemble = models.ForeignKey('Ensemble', on_delete=models.SET_NULL, null=True)
-    employee_type = models.ForeignKey('EmployeeType', on_delete=models.SET_NULL, null=True)
+    place_of_death = models.CharField(max_length=100, null=True, blank=True)
+    description = models.TextField(null=True, blank=True)    
+    publicity = models.BooleanField(default=False) #vm44
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
