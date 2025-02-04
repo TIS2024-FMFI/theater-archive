@@ -14,7 +14,7 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.models import Permission
 from typing import Type, Optional, Dict, Any
 from itertools import chain
-from .forms import EmployeeForm
+from .forms import *
 
 
 def get_all(model: Type[models.Model], filters: Optional[Dict[str, Any]] = None):
@@ -42,23 +42,38 @@ def list_employees(request):
     return render(request, 'archive_app/employees.html', {'employees': employees})
 
 def form_plays(request):
-    return render(request,'archive_app/form_play.html')
+    genres = GenreType.objects.all()
+    ensembles = Ensemble.objects.all()
+    if request.method == 'POST':
+        print("AAAAAAAAA:", request.POST)
+        form = PlayForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('list_plays')  # Redirect to a view that lists employees
+        else:
+            print(form.errors)
+    else:
+        form = PlayForm()
+    return render(request,'archive_app/form_play.html', {
+        'form':form, 'genres':genres, 'ensembles':ensembles
+    })
 
-def form_repeats(request):
-    return HttpResponse('<h1>Toto bude formulár na pridanie reprízy daného predstavenia</h1>')
+def form_repeats(request, id):
+    play = get_object_or_404(Play, pk=id)
+    return render(request,'archive_app/form_repeat.html', {'play':play})
 
 def form_concerts_and_events(request):
     return render(request, 'archive_app/form_concerts_and_events.html')
 
 def form_ensembles(request):
-    return HttpResponse('<h1>Toto bude formulár na pridanie nového súboru</h1>')
+    return render(request,'archive_app/form_ensemble.html')
 
 def form_employees(request): #virtualmachine44
     if request.method == 'POST':
         form = EmployeeForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('employee_list')  # Redirect to a view that lists employees
+            return redirect('list_employees')
     else:
         form = EmployeeForm()
     return render(request, 'archive_app/form_employee.html', {'form': form})

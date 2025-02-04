@@ -6,17 +6,22 @@
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-h1, h2 {
+h2, h3 {
     font-size: 20px;
     margin-bottom: 10px;
     border-bottom: 1px solid #ccc;
     padding-bottom: 5px;
 }
 
+h2 {
+    font-size: 30px;
+}
+
 .form-group {
     margin-bottom: 15px;
     display: flex;
     align-items: center;
+    gap: 30px;
 }
 
 label {
@@ -42,33 +47,58 @@ button {
     cursor: pointer;
 }
 
-button.delete-btn {
-    background-color: #e74c3c;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    margin-left: 5px;
-    border-radius: 3px;
-    font-size: 14px;
-}
+/*button.delete-btn {*/
+/*    background-color: #e74c3c;*/
+/*    color: white;*/
+/*    border: none;*/
+/*    padding: 5px 10px;*/
+/*    margin-left: 5px;*/
+/*    border-radius: 3px;*/
+/*    font-size: 14px;*/
+/*}*/
 
-button.add-btn {
-    background-color: #6c63ff;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    margin-top: 10px;
-    border-radius: 3px;
-    font-size: 14px;
-}
+/*button.add-btn {*/
+/*    background-color: #6c63ff;*/
+/*    color: white;*/
+/*    border: none;*/
+/*    padding: 5px 10px;*/
+/*    margin-top: 10px;*/
+/*    border-radius: 3px;*/
+/*    font-size: 14px;*/
+/*}*/
 
-button.save-btn {
-    background-color: #2ecc71;
+/*button.save-btn {*/
+/*    background-color: #2ecc71;*/
+/*    color: white;*/
+/*    border: none;*/
+/*    padding: 10px 20px;*/
+/*    font-size: 16px;*/
+/*    border-radius: 3px;*/
+/*}*/
+
+.submit {
+    background-color: black;
     color: white;
-    border: none;
+    border: 2px solid white;
     padding: 10px 20px;
     font-size: 16px;
-    border-radius: 3px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 5px;
+    outline: none;
+}
+
+.submit:hover{
+    background-color: white;
+    color: black;
+    border: 2px solid black;
+}
+
+.submit:active {
+    transform: scale(0.95);
 }
 
 .program-icon {
@@ -79,4 +109,61 @@ button.save-btn {
 hr {
     margin: 20px 0;
     border: 1px solid #ddd;
+}
+
+.btn {
+    background-color: #666; /* Medium gray */
+    color: white;
+    border: 2px solid white;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 5px;
+    outline: none;
+}
+
+.btn:hover {
+    background-color: white;
+    color: #666;
+    border: 2px solid #666;
+}
+
+.btn:active {
+    transform: scale(0.95);
+}
+
+.upload-label {
+    width: auto;
+    display: flex;
+    align-items: center;
+}
+
+.file-input {
+    display: none;
+    pointer-events: none; /* Prevent extra clicks */
+
+}
+
+.form-actions {
+    margin-top: 4%;
+    margin-bottom: 2%;
+    float: right;
+}
+
+.publish {
+    width: 20px;
+    margin-right: 10px;
+}
+
+ .file-preview {
+    display: none;
+    margin-top: 10px;
+    max-width: 100px;
+    max-height: 100px;
+    border: 2px solid #ddd;
+    border-radius: 5px;
 }

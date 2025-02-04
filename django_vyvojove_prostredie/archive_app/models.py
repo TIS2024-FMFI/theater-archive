@@ -85,7 +85,7 @@ class Employee(models.Model):
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     date_of_birth = models.DateField()
-    date_of_death = models.DateField() #vm44
+    date_of_death = models.DateField(null=True) #vm44
     place_of_birth = models.CharField(max_length=100, null=True, blank=True)
     place_of_death = models.CharField(max_length=100, null=True, blank=True)
     description = models.TextField(null=True, blank=True)    

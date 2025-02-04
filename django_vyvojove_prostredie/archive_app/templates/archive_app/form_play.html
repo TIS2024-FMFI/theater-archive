@@ -1,54 +1,79 @@
 {% extends 'archive_app/index.html' %}
 {% load static %}
 {% block content %}
-    <link rel="stylesheet" href="{%  static 'archive_app/form_play.css' %}">
+<section class="content">
+    <link rel="stylesheet" href="{%  static 'archive_app/form_concerts_and_events.css' %}">
     <div class="form-container">
-        <h1>Nové divadelné predstavenie</h1>
-        <form>
+        <h2>Nové divadelné predstavenie</h2>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
             <div class="form-group">
                 <label for="title">Titul:</label>
-                <input type="text" id="title" placeholder="Titul">
-                <label for="subtitle">Podtitul:</label>
+                <input id="title" name="title" type="text" placeholder="Titul" required>
+{#                <label for="subtitle">Podtitul:</label>#}
                 <input type="text" id="subtitle" placeholder="Podtitul">
             </div>
 
             <div class="form-group">
                 <label for="author-name">Autor:</label>
-                <input type="text" id="author-name" placeholder="Meno">
-                <input type="text" id="author-surname" placeholder="Priezvisko">
+                <input type="text" name="author_first_name" placeholder="Meno">
+                <input type="text" name="author_last_name" placeholder="Priezvisko">
             </div>
 
             <div class="form-group">
-                <label for="file">Súbor:</label>
-                <select id="file">
-                    <option value="1">-</option>
+                <label for="ensemble">Súbor:</label>
+                <select id="ensemble" name="ensemble" required>
+                    {% for e in ensembles %}
+                        <option value="{{ forloop.counter }}"> {{ e.name }}  </option>
+                    {% endfor %}
                 </select>
             </div>
 
             <div class="form-group">
                 <label for="description">Popis:</label>
-                <textarea id="description" rows="5" placeholder="Sem píšte popis..."></textarea>
+                <textarea id="description" name="description" rows="5" placeholder="Sem píšte popis..."></textarea>
             </div>
 
             <div class="form-group">
                 <label for="genre">Žáner:</label>
-                <select id="genre">
-                    <option value="1">-</option>
+                <select id="genre_type" name="genre_type">
+                    {% for g in genres %}
+                        <option value="{{ forloop.counter }}"> {{ g.name }}  </option>
+                    {% endfor %}
                 </select>
             </div>
 
+            <h3> Prílohy:</h3>
             <div class="form-group upload-section">
-                <label>Články a kritiky: <input type="file"></label>
-                <label>Plagát a bulletin: <input type="file"></label>
-                <label>Fotografie: <input type="file"></label>
+                 <label class="upload-label">Články a kritiky&ensp;
+                    <input type="file" id="file-upload-1" class="file-input" accept="image/*, .pdf, .doc, .docx">
+                    <span class="btn">Prilož súbor</span>
+                    <img id="file-preview-1" class="file-preview">
+                </label>
+
+                <label class="upload-label">Plagát a bulletin&ensp;
+                    <input type="file" id="file-upload-2" class="file-input" accept="image/*, .pdf, .doc, .docx">
+                    <span class="btn">Prilož súbor</span>
+                    <img id="file-preview-2" class="file-preview">
+                </label>
+
+                <label class="upload-label">Fotografie&ensp;
+                    <input type="file" id="file-upload-3" class="file-input" accept="image/*, .pdf, .doc, .docx">
+                    <span class="btn">Prilož súbor</span>
+                    <img id="file-preview-3" class="file-preview">
+                </label>
             </div>
 
+
             <div class="form-actions">
-                <label for="publish">
-                    <input type="checkbox" id="publish"> ZVEREJNIŤ
+                <label for="publish" class="publish">
+                    <input type="checkbox" name="publicity"> Zverejniť
                 </label>
-                <button type="submit" class="save-btn">Uložiť</button>
+                <button type="submit" class="submit">Uložiť</button>
             </div>
         </form>
     </div>
+
+</section>
 {% endblock %}
