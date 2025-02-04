@@ -1,78 +1,198 @@
 {% extends 'archive_app/index.html' %}
 {% load static %}
 {% block content %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Pridanie umelca</title>
-    <link rel="stylesheet" href="{% static 'archive_app/form_employee.css' %}">
-</head>
-<body>
-    <h1>Pridanie umelca</h1>
-    <hr>
-    <form method="post">
-        {% csrf_token %}
-        <p>
-            <label for="id_first_name">Meno:</label>
-            {{ form.first_name }}
-        </p>
-        <p>
-            <label for="id_last_name">Priezvisko:</label>
-            {{ form.last_name }}
-        </p>
+<section class="content">
+    <link rel="stylesheet" href="{% static 'archive_app/form_concerts_and_events.css' %}">
+    <div class="form-container">
+        <h2>Pridanie umelca</h2>
+        <form>
 
-        <h2>Zaradenie / odbor:</h2>
-        <p>
-            <label for="id_job">Job:</label>
-            {{ employee_job_form.job }}
-        </p>
-        <h2>Dátumy zamestnania:</h2>
-        <p>
-            <label for="id_date_start">Začiatok:</label>
-            {{ employee_job_form.date_start }}
-        </p>
-        <p>
-            <label for="id_date_end">Koniec:</label>
-            {{ employee_job_form.date_end }}
-        </p>
+            <!-- First Row: Meno & Priezvisko -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="artist-name">Meno:</label>
+                    <input type="text" id="artist-name" placeholder="meno umelca">
+                </div>
+                <div class="form-group">
+                    <label for="artist-surname">Priezvisko:</label>
+                    <input type="text" id="artist-surname" placeholder="priezvisko umelca">
+                </div>
+            </div>
+
+            <!-- Host / umelec SND -->
+            <div class="form-group">
+                <label for="snd-artist">Host/umelec SND:</label>
+                <select id="snd-artist">
+                    <option value="-">-</option>
+                </select>
+            </div>
+
+            <hr style="height: 0px; border: none; border-top: 1px solid #ccc; ">
 
 
-        <p>
-            <label for="id_publicity">Zverejniť:</label>
-            {{ form.publicity }}
-        </p>
-        <button type="submit">Uložiť</button>
-        <button type="button" onclick="addJob()">+</button>
-    </form>
-    <script>
-        function addJob() {
-            const form = document.querySelector('form');
-            const jobForm = `
-                <h2>Zaradenie / odbor:</h2>
-                <p>
-                    <label for="id_job">Job:</label>
-                    <select name="job" id="id_job">
-                        {% for job in jobs %}
-                            <option value="{{ job.id }}">{{ job.name }}</option>
-                        {% endfor %}
+{#            <!-- Dátumy Zamestnania -->#}
+{#            <div class="form-group">#}
+{#                <label for="start-date">Dátumy zamestnania:</label>#}
+{#                <div class="form-row">#}
+{#                    <div class="form-group">#}
+{#                        <label for="start-date">Začiatok:</label>#}
+{#                        <input type="date" id="start-date" value="2024-11-17">#}
+{#                    </div>#}
+{#                    <div class="form-group">#}
+{#                        <label for="end-date">Koniec:</label>#}
+{#                        <input type="date" id="end-date" value="2024-11-17">#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+
+            <!-- Zaradenie & Odbor -->
+            <div class="form-group">
+                <label for="category">Zaradenie/odbor:</label>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <select id="category">
+                                <option value="-">-</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="start-date">Začiatok:</label>
+                            <input type="date" id="start-date" value="2024-11-17">
+                        </div>
+                        <div class="form-group">
+                            <label for="end-date">Koniec:</label>
+                            <input type="date" id="end-date" value="2024-11-17">
+                        </div>
+                        <hr style="height: 0px; border: none; border-top: 1px solid #ccc; ">
+                        <div class="form-group">
+                            <button type="button" class="btn">&#10010;</button>
+                        </div>
+                    </div>
+            </div>
+
+
+
+            <!-- Zložka, Dátumy Narodenia a Úmrtia -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="folder">Zložka:</label>
+                    <select id="folder">
+                        <option value="opera">Opera</option>
                     </select>
-                </p>
-                <h2>Dátumy zamestnania:</h2>
-                <p>
-                    <label for="id_date_start">Začiatok:</label>
-                    <input type="date" name="date_start" id="id_date_start">
-                </p>
-                <p>
-                    <label for="id_date_end">Koniec:</label>
-                    <input type="date" name="date_end" id="id_date_end">
-                </p>
-            `;
-            form.insertAdjacentHTML('beforeend', jobForm);
-        }
-    </script>
+                </div>
+                <div class="form-group">
+                    <label for="birth-date">Dátum narodenia:</label>
+                    <input type="date" id="birth-date" value="1983-07-21">
+                </div>
+                <div class="form-group">
+                    <label for="death-date">Dátum úmrtia:</label>
+                    <input type="date" id="death-date">
+                </div>
+                <div class="form-group">
+                    <label></label>
+                    <label class="inline-checkbox">
+                        <input type="checkbox" id="publish-dates"> zverejniť dátumy
+                    </label>
+                </div>
+            </div>
 
-    </form>
-</body>
-</html>
+           <hr style="height: 0px; border: none; border-top: 1px solid #ccc; ">
+            <!-- Narodenie & Miesto úmrtia -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="birthplace">Narodený/á:</label>
+                    <input type="text" id="birthplace" placeholder="miesto narodenia">
+                </div>
+                <div class="form-group">
+                    <label for="deathplace">Miesto úmrtia:</label>
+                    <input type="text" id="deathplace" placeholder="miesto úmrtia">
+                </div>
+            </div>
+
+            <!-- Súbor Selection -->
+            <div class="form-group">
+                <label for="file">Súbor:</label>
+                <select id="file">
+                    <option value="opera_snd">Opera SND</option>
+                </select>
+            </div>
+
+            <!-- Popis -->
+            <div class="form-group">
+                <label for="description">Popis:</label>
+                <textarea id="description" rows="5"></textarea>
+            </div>
+
+            <h3> Prílohy:</h3>
+            <div class="form-group upload-section">
+                <label class="upload-label">Titulná fotogtafia&ensp;
+                    <input type="file" id="file-upload-profile" class="file-input" accept="image/*, .pdf, .doc, .docx">
+                    <span class="btn">Prilož súbor</span>
+                    <img id="file-preview-profile" class="file-preview">
+                </label>
+                <br>
+                <label class="upload-label">Ďalšie fotografie&ensp;
+                    <input type="file" id="file-upload" class="file-input" accept="image/*, .pdf, .doc, .docx">
+                    <span class="btn">Prilož súbor</span>
+                    <img id="file-preview" class="file-preview">
+                </label>
+            </div>
+
+            <div class="form-actions">
+                <label for="publish" class="publish">
+                    <input type="checkbox" id="publish">Zverejniť
+                </label>
+                <button type="submit" class="submit">Uložiť</button>
+            </div>
+        </form>
+    </div>
+</section>
+
+    <script>
+        document.querySelectorAll('.file-input').forEach((input) => {
+            input.addEventListener('change', function () {
+                let file = this.files[0];
+                let previewElement = document.getElementById('file-preview-' + this.id.split('-')[2]);
+
+                if (file) {
+                    // Check if the file is an image
+                    if (file.type.startsWith('image/')) {
+                        let reader = new FileReader();
+                        reader.onload = function (e) {
+                            previewElement.src = e.target.result;
+                            previewElement.style.display = 'block';
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        previewElement.style.display = 'none';
+                    }
+
+                    this.nextElementSibling.textContent = "Súbor prijatý";
+                }
+            });
+        });
+    // Add Zaradenie Button
+    document.querySelector('.add-btn').addEventListener('click', function () {
+        let categorySection = document.createElement("div");
+        categorySection.classList.add("form-group");
+
+        let newCategory = document.createElement("input");
+        newCategory.type = "text";
+        newCategory.placeholder = "Nové zaradenie";
+
+        let removeBtn = document.createElement("button");
+        removeBtn.type = "button";
+        removeBtn.classList.add("remove-btn");
+        removeBtn.textContent = "&#10006;";
+
+        removeBtn.addEventListener("click", function () {
+            categorySection.remove();
+        });
+
+        categorySection.appendChild(newCategory);
+        categorySection.appendChild(removeBtn);
+
+        document.querySelector(".add-btn").before(categorySection);
+    });
+</script>
+
 {% endblock %}

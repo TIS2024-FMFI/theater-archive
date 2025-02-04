@@ -8,7 +8,7 @@ urlpatterns = [
     path('ensembles/', views.list_ensembles, name='list_ensembles'),
     path('employees/', views.list_employees, name='list_employees'),
     path('plays/add_play/', views.form_plays, name='form_plays'),
-    path('plays/get_play/add_repeat/', views.form_repeats, name='form_repeats'),
+    path('plays/get_play/<int:id>/add_repeat/', views.form_repeats, name='form_repeats'),
     path('concerts_and_events/add_concert_or_event/', views.form_concerts_and_events, name='form_concerts_and_events'),
     path('ensembles/add_ensemble/', views.form_ensembles, name='form_ensembles'),
     

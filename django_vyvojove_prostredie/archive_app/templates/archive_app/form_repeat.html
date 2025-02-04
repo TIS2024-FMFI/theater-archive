@@ -1,0 +1,135 @@
+{% extends 'archive_app/index.html' %}
+{% load static %}
+{% block content %}
+<section class="content">
+    <link rel="stylesheet" href="{%  static 'archive_app/form_concerts_and_events.css' %}">
+    <div class="form-container">
+       <h2>Nové divadelné predstavenie</h2>
+        <form>
+
+            <!-- Event Type, Date, and Location -->
+            <div class="form-group">
+                <label for="event-type">Typ podujatia:</label>
+                <select id="event-type">
+                    <option value="repriza">Repríza</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="event-date">Dátum a čas:</label>
+                <input type="datetime-local" id="event-date" value="2000-01-01T00:00">
+            </div>
+
+            <div class="form-group">
+                <label for="venue">Miesto:</label>
+                <select id="venue">
+                    <option value="snd">Sála činohry SND</option>
+                </select>
+                <label for="other-venue">Iné miesto:</label>
+                <input type="text" id="other-venue" placeholder="Iné miesto">
+            </div>
+
+            <!-- Cast Section -->
+            <h3>Obsadenie</h3>
+            <div class="form-group">
+                <label for="role">Postava:</label>
+                <input type="text" id="role" placeholder="Postava">
+                <button type="button" class="btn">&#10006;</button>
+            </div>
+
+            <div class="form-group">
+                <label for="actor">Herec / Herečka:</label>
+                <input type="text" id="actor" placeholder="Umelec">
+                <button type="button" class="btn">&#10006;</button>
+            </div>
+
+            <button type="button" class="btn">&#10010; pridať umelca</button>
+
+            <!-- File Upload Section -->
+            <h3> Prílohy:</h3>
+            <div class="form-group upload-section">
+                <label class="upload-label">Články a kritiky&ensp;
+                    <input type="file" id="file-upload-1" class="file-input" accept="image/*, .pdf, .doc, .docx">
+                    <span class="btn">Prilož súbor</span>
+                    <img id="file-preview-1" class="file-preview">
+                </label>
+
+                <label class="upload-label">Plagát a bulletin&ensp;
+                    <input type="file" id="file-upload-2" class="file-input" accept="image/*, .pdf, .doc, .docx">
+                    <span class="btn">Prilož súbor</span>
+                    <img id="file-preview-2" class="file-preview">
+                </label>
+
+                <label class="upload-label">Fotografie&ensp;
+                    <input type="file" id="file-upload-3" class="file-input" accept="image/*, .pdf, .doc, .docx">
+                    <span class="btn">Prilož súbor</span>
+                    <img id="file-preview-3" class="file-preview">
+                </label>
+            </div>
+
+            <!-- Publish and Submit -->
+            <div class="form-actions">
+                <label for="publish" class="publish">
+                    <input type="checkbox" id="publish"> Zverejniť
+                </label>
+                <button type="submit" class="submit">Uložiť</button>
+            </div>
+
+        </form>
+    </div>
+</section>
+
+<script>
+    // File Upload Preview
+    document.querySelectorAll('.file-input').forEach((input) => {
+        input.addEventListener('change', function () {
+            let file = this.files[0];
+            let previewElement = document.getElementById('file-preview-' + this.id.split('-')[2]);
+
+            if (file) {
+                if (file.type.startsWith('image/')) {
+                    let reader = new FileReader();
+                    reader.onload = function (e) {
+                        previewElement.src = e.target.result;
+                        previewElement.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    previewElement.style.display = 'none';
+                }
+            }
+        });
+    });
+
+    // Remove Button Functionality
+    document.querySelectorAll('.remove-btn').forEach((btn) => {
+        btn.addEventListener('click', function () {
+            this.previousElementSibling.value = ""; // Clear input field
+        });
+    });
+
+    // Add Actor Button
+    document.querySelector('.add-btn').addEventListener('click', function () {
+        let actorSection = document.createElement("div");
+        actorSection.classList.add("form-group");
+
+        let newActor = document.createElement("input");
+        newActor.type = "text";
+        newActor.placeholder = "Umelec";
+
+        let removeBtn = document.createElement("button");
+        removeBtn.type = "button";
+        removeBtn.classList.add("remove-btn");
+        removeBtn.textContent = "&#10006";
+
+        removeBtn.addEventListener("click", function () {
+            actorSection.remove();
+        });
+
+        actorSection.appendChild(newActor);
+        actorSection.appendChild(removeBtn);
+
+        document.querySelector(".add-btn").before(actorSection);
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends 'archive_app/index.html' %}
+{% load static %}
+{% block content %}
+<section class="content">
+    <link rel="stylesheet" href="{% static 'archive_app/form_concerts_and_events.css' %}">
+    <div class="form-container">
+        <h2>Pridať súbor</h2>
+        <form>
+            <!-- First row: Názov & Host/SND súbor -->
+            <div class="form-group">
+                <label for="file-name">Názov:</label>
+                <input type="text" id="file-name" placeholder="Názov súboru">
+
+                <label for="snd-file">Host / SND súbor:</label>
+                <select id="snd-file">
+                    <option value="snd">SND súbor</option>
+                </select>
+            </div>
+
+            <!-- Second row: Start Date & End Date -->
+            <div class="form-group">
+                <label for="start-date">Dátum začiatku pôsobenia:</label>
+                <input type="date" id="start-date" value="1983-07-21">
+
+                <label for="end-date">Dátum ukončenia pôsobenia:</label>
+                <input type="date" id="end-date">
+            </div>
+
+            <!-- Description -->
+            <div class="form-group">
+                <label for="description">Popis:</label>
+                <textarea id="description" rows="5"></textarea>
+            </div>
+
+
+            <div class="form-actions">
+                <label for="publish" class="publish">
+                    <input type="checkbox" id="publish">Zverejniť
+                </label>
+                <button type="submit" class="submit">Uložiť</button>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}

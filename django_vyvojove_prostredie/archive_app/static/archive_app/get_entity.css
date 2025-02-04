@@ -43,6 +43,24 @@ hr {
     flex: 1;
 }
 
+.btn {
+    padding: 8px 15px;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+    background-color: #333;
+    font-weight: bold;
+    color: #fff;
+    font-family: 'Helvetica', Arial, sans-serif;
+    margin-left: auto;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.btn:hover {
+    background-color:  #666;
+}
+
+
 /*.left-section .team-list {*/
 /*    margin: 0;*/
 /*    padding: 30px;*/
