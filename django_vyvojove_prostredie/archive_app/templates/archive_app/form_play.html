@@ -25,7 +25,7 @@
                 <label for="ensemble">Súbor:</label>
                 <select id="ensemble" name="ensemble" required>
                     {% for e in ensembles %}
-                        <option value="{{ forloop.counter }}"> {{ e.name }}  </option>
+                        <option value="{{ e.id }}"> {{ e.name }}  </option>
                     {% endfor %}
                 </select>
             </div>
@@ -39,7 +39,7 @@
                 <label for="genre">Žáner:</label>
                 <select id="genre_type" name="genre_type">
                     {% for g in genres %}
-                        <option value="{{ forloop.counter }}"> {{ g.name }}  </option>
+                        <option value="{{ g.id }}"> {{ g.name }}  </option>
                     {% endfor %}
                 </select>
             </div>
