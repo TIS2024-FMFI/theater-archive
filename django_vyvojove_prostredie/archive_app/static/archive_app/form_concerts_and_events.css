@@ -111,7 +111,7 @@ hr {
     border: 1px solid #ddd;
 }
 
-.btn {
+.btn , .add-btn {
     background-color: #666; /* Medium gray */
     color: white;
     border: 2px solid white;

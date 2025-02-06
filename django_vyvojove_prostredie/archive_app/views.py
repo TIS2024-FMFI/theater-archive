@@ -68,15 +68,33 @@ def form_concerts_and_events(request):
 def form_ensembles(request):
     return render(request,'archive_app/form_ensemble.html')
 
+
 def form_employees(request): #virtualmachine44
     if request.method == 'POST':
-        form = EmployeeForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('list_employees')
+        print("POST DATA:", request.POST)
+
+        employee_form = EmployeeForm(request.POST)
+        job_formset = EmployeeJobFormSet(request.POST)
+
+        if employee_form.is_valid() and job_formset.is_valid():
+            employee = employee_form.save()
+
+            job_formset.instance = employee  # Assign employee to job formset
+            job_formset.save()  # Save EmployeeJob instances
+
+            return redirect('employee_list')  # Redirect after saving
+        else:
+            print("Form Errors:", employee_form.errors)
+            print("Job Formset Errors:", job_formset.errors)
     else:
-        form = EmployeeForm()
-    return render(request, 'archive_app/form_employee.html', {'form': form})
+        employee_form = EmployeeForm()
+        job_formset = EmployeeJobFormSet()
+
+    return render(request, 'archive_app/form_employee.html', {
+        'employee_form': employee_form,
+        'job_formset': job_formset,
+    })
+
 
 def get_play(request, id):
     play = get_object_or_404(Play, pk=id)

@@ -46,27 +46,45 @@
 {#            </div>#}
 
             <!-- Zaradenie & Odbor -->
-            <div class="form-group">
+            <div class="form-group" id="jobContainer">
                 <label for="category">Zaradenie/odbor:</label>
-                    <div class="form-row">
+                {{ job_formset.management_form }}
+                {% for form in job_formset %}
+                <div class="form-row">
+
+                    <div class="form-row" id="job_entry">
                         <div class="form-group">
-                            <select id="category">
-                                <option value="-">-</option>
+                            <select id="category" name="{{ form.job.name }}">
+                                <option value="">Vyberte prácu</option>
+                                {% for job in form.fields.job.queryset %}
+                                    <option value="{{ job.id }}" {% if form.job.value == job.id %}selected{% endif %}>
+                                        {{ job.name }}
+                                    </option>
+                                {% endfor %}
                             </select>
                         </div>
                         <div class="form-group">
                             <label for="start-date">Začiatok:</label>
-                            <input type="date" id="start-date" value="2024-11-17">
+                            <input type="date" name="{{ form.date_start.name }}" value="{{ form.date_start.value|default:'' }}">
                         </div>
                         <div class="form-group">
                             <label for="end-date">Koniec:</label>
-                            <input type="date" id="end-date" value="2024-11-17">
+                            <input type="date" name="{{ form.date_end.name }}" value="{{ form.date_end.value|default:'' }}">
+                        </div>
+                        <div class="form-group">
+                            <button type="button" class="remove-job btn">✖</button>
                         </div>
                         <hr style="height: 0px; border: none; border-top: 1px solid #ccc; ">
-                        <div class="form-group">
-                            <button type="button" class="btn">&#10010;</button>
-                        </div>
+                        <button type="button" class="btn" id="add-job">&#10010;</button>
+
                     </div>
+
+{#                    <div class="form-group">#}
+{#                        <label></label>#}
+{#                        #}
+{#                    </div>#}
+                </div>
+                {% endfor %}
             </div>
 
 
@@ -131,9 +149,9 @@
                 </label>
                 <br>
                 <label class="upload-label">Ďalšie fotografie&ensp;
-                    <input type="file" id="file-upload" class="file-input" accept="image/*, .pdf, .doc, .docx">
+                    <input type="file" id="file-upload-other" class="file-input" accept="image/*, .pdf, .doc, .docx">
                     <span class="btn">Prilož súbor</span>
-                    <img id="file-preview" class="file-preview">
+                    <img id="file-preview-other" class="file-preview">
                 </label>
             </div>
 
@@ -170,29 +188,71 @@
                 }
             });
         });
-    // Add Zaradenie Button
-    document.querySelector('.add-btn').addEventListener('click', function () {
-        let categorySection = document.createElement("div");
-        categorySection.classList.add("form-group");
 
-        let newCategory = document.createElement("input");
-        newCategory.type = "text";
-        newCategory.placeholder = "Nové zaradenie";
+        document.addEventListener("DOMContentLoaded", function () {
+            let jobContainer = document.getElementById("jobContainer");
+            let addButton = document.getElementById("add-job");
+            let totalForms = document.querySelector("#id_employeejob_set-TOTAL_FORMS");
 
-        let removeBtn = document.createElement("button");
-        removeBtn.type = "button";
-        removeBtn.classList.add("remove-btn");
-        removeBtn.textContent = "&#10006;";
+            if (addButton) {
+                addButton.addEventListener("click", function () {
+                    let formCount = parseInt(totalForms.value);
+                    let template = document.getElementById("job_entry");
 
-        removeBtn.addEventListener("click", function () {
-            categorySection.remove();
+                    if (!template) {
+                        console.error("Error: 'job_entry' element not found.");
+                        return;
+                    }
+
+                    let newEntry = template.cloneNode(true);
+                    newEntry.removeAttribute("id"); // Remove duplicate ID
+
+                    // Remove the "Add Job" button from the cloned entry
+                    let clonedAddButton = newEntry.querySelector("#add-job");
+                    if (clonedAddButton) {
+                        clonedAddButton.style.visibility = "hidden";
+                    }
+
+                    // Update form field names for Django formset
+                    newEntry.innerHTML = newEntry.innerHTML.replace(/-\d+-/g, `-${formCount}-`);
+
+                    // Clear input values
+                    newEntry.querySelectorAll("input, select").forEach(input => {
+                        if (input.type === "date") {
+                            input.value = "";
+                        } else if (input.tagName === "SELECT") {
+                            input.selectedIndex = 0;
+                        }
+                    });
+
+                    let removeButton = newEntry.querySelector(".remove-job, #remove-job");
+                    console.log(newEntry);
+                    if (removeButton) {
+                        removeButton.addEventListener("click", function () {
+                           this.parentElement.parentElement.remove(); // Remove the entire job entry
+                            totalForms.value = document.querySelectorAll("#jobContainer > div").length;
+                        });
+                    } else {
+                        console.error("Error: 'remove-job' button not found inside new entry.");
+                    }
+
+                    // Append the new job entry inside the job container
+                    jobContainer.appendChild(newEntry);
+                    totalForms.value = formCount + 1;
+                });
+            } else {
+                console.error("Error: 'add-job' button not found.");
+            }
+
+            // Enable removing existing jobs
+            {#document.querySelectorAll(".remove-job, #remove-job").forEach(button => {#}
+            {#    button.addEventListener("click", function () {#}
+            {#        this.parentElement.parentElement.remove();#}
+            {#        totalForms.value = document.querySelectorAll("#jobContainer > div").length;#}
+            {#    });#}
+            //});
         });
 
-        categorySection.appendChild(newCategory);
-        categorySection.appendChild(removeBtn);
-
-        document.querySelector(".add-btn").before(categorySection);
-    });
 </script>
 
 {% endblock %}
