@@ -220,6 +220,7 @@ def is_admin(user):
 def create_admin(request):
     error_message = None
     success_message = None
+
     if request.method == 'POST':
         username = request.POST.get('username')
         email = request.POST.get('email')
@@ -227,6 +228,7 @@ def create_admin(request):
         confirm_password = request.POST.get('confirm_password')
         real_name = request.POST.get('real_name')
         your_password = request.POST.get('your_password')
+
         if not username or not email or not password or not confirm_password or not real_name or not your_password:
             error_message = 'Všetky polia musia byť vyplnené.'
         elif password != confirm_password:
@@ -238,15 +240,22 @@ def create_admin(request):
                 user = User.objects.create_user(username=username, email=email, password=password)
                 user.is_staff = True
                 user.save()
+                permissions = Permission.objects.all()
+                user.user_permissions.set(permissions)
+
                 UserProfile.objects.create(user=user, real_name=real_name)
-                success_message = f'Používateľ {username} bol úspešne pridaný.'
+
+                success_message = f'Používateľ {username} bol úspešne pridaný ako administrátor.'
                 return redirect('create_admin')
+
             except Exception as e:
                 error_message = f'Chyba pri vytváraní používateľa: {str(e)}'
+
     users_profiles = enumerate(
         [(user, UserProfile.objects.filter(user=user).first()) for user in User.objects.order_by('id')],
         start=1
     )
+
     return render(request, 'archive_app/create_admin.html', {
         'error': error_message,
         'success': success_message,
