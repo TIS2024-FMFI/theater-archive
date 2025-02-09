@@ -14,49 +14,57 @@
 
     <!-- Filters Section -->
     <section class="filters">
-        <div class="filter">
-            <label for="abecedne">Abecedne</label>
-            <select id="abecedne" class="dropdown">
-                <option>Od a po z</option>
-                <option>Od z po a</option>
-            </select>
-        </div>
-        <div class="filter">
-            <label for="meno">Meno</label>
-            <select id="meno" class="dropdown">
-                <option>-</option>
-            </select>
-        </div>
-        <div class="filter">
-            <label for="subor">Súbor</label>
-            <select id="subor" class="dropdown">
-                <option>-</option>
-            </select>
-        </div>
-        <div class="filter">
-            <label for="rola">Rola</label>
-            <select id="rola" class="dropdown">
-                <option>-</option>
-            </select>
-        </div>
         <form class="filters" id="search-form" method="get" action="{% url 'list_employees' %}">
+            <div class="filter">
+                <label for="abecedne">Abecedne</label>
+                <select id="abecedne" class="dropdown" name="sort_order">
+                    <option value="asc" {% if selected_sort_order == "asc" %}selected{% endif %}>Od a po z</option>
+                    <option value="desc" {% if selected_sort_order == "desc" %}selected{% endif %}>Od z po a</option>
+                </select>
+            </div>
+            <div class="filter">
+                <label for="meno">Meno</label>
+                <select id="meno" class="dropdown" name="first_name">
+                    <option>-</option>
+                    {% for name in first_names %}
+                        <option value="{{ name }}" {% if selected_first_name == name %}selected{% endif %}>{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter">
+                <label for="priezvisko">Priezvisko</label>
+                <select id="priezvisko" class="dropdown" name="last_name">
+                    <option>-</option>
+                    {% for name in last_names %}
+                        <option value="{{ name }}" {% if selected_last_name == name %}selected{% endif %}>{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter">
+                <label for="rola">Rola</label>
+                <select id="rola" class="dropdown" name="role">
+                    <option>-</option>
+                    {% for role in roles %}
+                        <option value="{{ role }}" {% if selected_role == role %}selected{% endif %}>{{ role }}</option>
+                    {% endfor %}
+                </select>
+            </div>
             <div class="filter">
                 <label for="zverejnene">Zverejnené</label>
                 <select id="zverejnene" class="dropdown" name="publicity">
-                    <option value="">-</option>
-                    <option value="true">Zverejnené</option>
-                    <option value="false">Nezverejnené</option>
+                    <option value="" {% if selected_publicity == "" %}selected{% endif %}>-</option>
+                    <option value="true" {% if selected_publicity == "true" %}selected{% endif %}>Zverejnené</option>
+                    <option value="false" {% if selected_publicity == "false" %}selected{% endif %}>Nezverejnené</option>
                 </select>
             </div>
-        
-        <div class="filter search">
-            <label for="key-term">Kľúčový pojem</label>
-            <input id="key-term" type="text" class="search-input" placeholder="Sem napíš pojem">
-        </div>
-        <div class="filter">
-            <button class="btn " id="search-button" type="submit">Vyhľadať</button>
-        </div>
-    </form>
+            <div class="filter search">
+                <label for="key-term">Kľúčový pojem</label>
+                <input id="key-term" type="text" class="search-input" placeholder="Sem napíš pojem">
+            </div>
+            <div class="filter">
+                <button class="btn" id="search-button" type="submit">Vyhľadať</button>
+            </div>
+        </form>
     </section>
 
     <!-- Results Section -->
@@ -68,21 +76,4 @@
     </section>
 </section>
 
-
-<script>
-document.getElementById("search-button").addEventListener("click", function() {
-    const publicity = document.getElementById("zverejnene").value;
-    fetch(`/search_employees?publicity=${publicity}`)
-        .then(response => response.json())
-        .then(data => {
-            const resultsContainer = document.getElementById("results-container");
-            resultsContainer.innerHTML = "";
-            data.forEach(entry => {
-                const div = document.createElement("div");
-                div.textContent = `${entry.first_name} ${entry.last_name}`;
-                resultsContainer.appendChild(div);
-            });
-        });
-});
-</script>
 {% endblock %}

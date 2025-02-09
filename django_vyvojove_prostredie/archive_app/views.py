@@ -86,21 +86,10 @@ def list_ensembles(request):
 
 def list_employees(request):
     publicity = request.GET.get('publicity')
-    if publicity == "true":
-        employees = Employee.objects.filter(publicity=True)
-    elif publicity == "false":
-        employees = Employee.objects.filter(publicity=False)
-    else:
-        employees = Employee.objects.all()
-        #employees = get_all(Employee)
-    return render(request, 'archive_app/employees.html', {'employees': employees})
-    '''
-    publicity = request.GET.get('publicity')
     first_name = request.GET.get('first_name')
+    last_name = request.GET.get('last_name')
+    role = request.GET.get('role')
     sort_order = request.GET.get('sort_order')
-    ensemble_id = request.GET.get('ensemble')
-    job_id = request.GET.get('job')
-    key_term = request.GET.get('key_term')
     
     employees = Employee.objects.all()
     
@@ -112,34 +101,43 @@ def list_employees(request):
     if first_name and first_name != "-":
         employees = employees.filter(first_name=first_name)
     
-    if ensemble_id and ensemble_id != "-":
-        employees = employees.filter(ensemble_id=ensemble_id)
+    if last_name and last_name != "-":
+        employees = employees.filter(last_name=last_name)
     
-    if job_id and job_id != "-":
-        employees = employees.filter(employeejob__job_id=job_id)
-    
-    if key_term:
-        employees = employees.filter(description__icontains=key_term)
+    if role and role != "-":
+        employees = employees.filter(repeatperformer__role=role)
     
     if sort_order == "asc":
         employees = employees.order_by('last_name')
     elif sort_order == "desc":
         employees = employees.order_by('-last_name')
     
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        employees_data = list(employees.values('id', 'first_name', 'last_name'))
-        return JsonResponse(employees_data, safe=False)
-    
     first_names = Employee.objects.values_list('first_name', flat=True).distinct()
-    ensembles = Ensemble.objects.all()
-    jobs = Job.objects.all()
+    last_names = Employee.objects.values_list('last_name', flat=True).distinct()
+    roles = RepeatPerformer.objects.values_list('role', flat=True).distinct()
     
     return render(request, 'archive_app/employees.html', {
         'employees': employees,
         'first_names': first_names,
-        'ensembles': ensembles,
-        'jobs': jobs,
-    })'''
+        'last_names': last_names,
+        'roles': roles,
+        'selected_publicity': publicity,
+        'selected_first_name': first_name,
+        'selected_last_name': last_name,
+        'selected_role': role,
+        'selected_sort_order': sort_order,
+    })
+    '''
+    publicity = request.GET.get('publicity')
+    if publicity == "true":
+        employees = Employee.objects.filter(publicity=True)
+    elif publicity == "false":
+        employees = Employee.objects.filter(publicity=False)
+    else:
+        employees = Employee.objects.all()
+        #employees = get_all(Employee)
+    return render(request, 'archive_app/employees.html', {'employees': employees})
+    '''
 
 def form_plays(request):
     genres = GenreType.objects.all()
