@@ -7,7 +7,7 @@
     <hr>
     {% if request.user.is_authenticated and request.user.is_staff %}
     <div class="action-buttons" >
-        <button class="edit">Upraviť</button>
+        <a href="{% url 'edit_ensemble' ensemble.id %}" class="btn btn-primary">Upraviť</a>
         <button class="copy">Vytvoriť kópiu</button>
     </div>
     {% endif %}
@@ -24,6 +24,7 @@
             {% endif %}
 
             <label class="label">Popis:</label>
+            <div class="content">{{ ensemble.description }}</div>
             <div class="content">{{ play.description }}</div>
 
             <h2>Osobnosti</h2>

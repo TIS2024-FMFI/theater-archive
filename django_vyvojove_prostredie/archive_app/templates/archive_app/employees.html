@@ -41,11 +41,11 @@
                 </select>
             </div>
             <div class="filter">
-                <label for="rola">Rola</label>
-                <select id="rola" class="dropdown" name="role">
+                <label for="job">Pracovná pozícia</label>
+                <select id="job" class="dropdown" name="job">
                     <option>-</option>
-                    {% for role in roles %}
-                        <option value="{{ role }}" {% if selected_role == role %}selected{% endif %}>{{ role }}</option>
+                    {% for job in jobs %}
+                        <option value="{{ job.id }}" {% if selected_job == job.id|stringformat:"s" %}selected{% endif %}>{{ job.name }}</option>
                     {% endfor %}
                 </select>
             </div>

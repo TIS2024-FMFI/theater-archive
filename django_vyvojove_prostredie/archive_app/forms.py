@@ -100,3 +100,12 @@ EmployeeJobFormSet = inlineformset_factory(
     extra=1,
     # can_delete=True
 )
+
+class EnsembleForm(forms.ModelForm): #vm44
+    class Meta:
+        model = Ensemble
+        fields = ['name', 'guest', 'foundation_date', 'dissolution_date', 'description', 'publicity']
+        widgets = {
+            'foundation_date': forms.DateInput(attrs={'type': 'date'}),
+            'dissolution_date': forms.DateInput(attrs={'type': 'date'}),
+        }

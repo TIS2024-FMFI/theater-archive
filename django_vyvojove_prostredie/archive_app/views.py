@@ -1,5 +1,5 @@
 from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
@@ -182,6 +182,7 @@ def list_employees(request):
     })
 
 
+
 def form_plays(request):
     genres = GenreType.objects.all()
     ensembles = Ensemble.objects.all()
@@ -206,7 +207,16 @@ def form_concerts_and_events(request):
     return render(request, 'archive_app/form_concerts_and_events.html')
 
 def form_ensembles(request):
-    return render(request,'archive_app/form_ensemble.html')
+    if request.method == "POST":
+        form = EnsembleForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('list_ensembles')  # Redirect to the list of ensembles after saving
+    else:
+        form = EnsembleForm()
+    
+    return render(request, 'archive_app/form_ensemble.html', {'form': form})
+    #return render(request,'archive_app/form_ensemble.html')
 
 
 def form_employees(request): #virtualmachine44
@@ -429,3 +439,21 @@ def delete_user(request, user_id):
         'success': success_message,
         'users_profiles': users_profiles,
     })
+
+
+def edit_ensemble(request, ensemble_id):
+    ensemble = get_object_or_404(Ensemble, id=ensemble_id)
+    
+    if request.method == "POST":
+        form = EnsembleForm(request.POST, instance=ensemble)
+        if form.is_valid():
+            form.save()
+            print("Form is valid and saved")
+            return redirect('get_ensemble', id=ensemble.id)
+        else:
+            print("Form is not valid")
+            print(form.errors)
+    else:
+        form = EnsembleForm(instance=ensemble)
+        
+    return render(request, 'archive_app/form_ensemble.html', {'form': form, 'ensemble': ensemble})
