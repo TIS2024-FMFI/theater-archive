@@ -13,6 +13,8 @@ from django.contrib.auth.models import Permission
 from typing import Type, Optional, Dict, Any
 from itertools import chain
 from .forms import *
+from django.db.models.functions import TruncMonth, TruncYear
+from django.db.models import Q
 
 
 def get_all(model: Type[models.Model], filters: Optional[Dict[str, Any]] = None):
@@ -24,8 +26,49 @@ def main_page(request):
     return render(request, 'archive_app/index.html')
 
 def list_plays(request):
-    plays = get_all(Play)
-    return render(request, 'archive_app/plays.html', {'plays':plays})
+    genre = request.GET.get('genre')
+    ensemble = request.GET.get('ensemble')
+    season = request.GET.get('season')
+    publicity = request.GET.get('publicity')
+    sort_order = request.GET.get('sort_order')
+    
+    plays = Play.objects.all()
+    
+    if genre and genre != "-":
+        plays = plays.filter(genre_type_id=genre)
+    
+    if ensemble and ensemble != "-":
+        plays = plays.filter(ensemble_id=ensemble)
+    
+    if season and season != "-":
+        month, year = season.split('-')
+        plays = plays.filter(repeat__date__month=month, repeat__date__year=year)
+    
+    if publicity == "true":
+        plays = plays.filter(publicity=True)
+    elif publicity == "false":
+        plays = plays.filter(publicity=False)
+    
+    if sort_order == "asc":
+        plays = plays.order_by('title')
+    elif sort_order == "desc":
+        plays = plays.order_by('-title')
+    
+    genres = GenreType.objects.all()
+    ensembles = Ensemble.objects.all()
+    seasons = Repeat.objects.annotate(month=TruncMonth('date'), year=TruncYear('date')).values_list('month', 'year').distinct()
+    
+    return render(request, 'archive_app/plays.html', {
+        'plays': plays,
+        'genres': genres,
+        'ensembles': ensembles,
+        'seasons': seasons,
+        'selected_genre': genre,
+        'selected_ensemble': ensemble,
+        'selected_season': season,
+        'selected_publicity': publicity,
+        'selected_sort_order': sort_order,
+    })
 
 def list_concerts_and_events(request):
     publicity = request.GET.get('publicity')
@@ -127,17 +170,7 @@ def list_employees(request):
         'selected_role': role,
         'selected_sort_order': sort_order,
     })
-    '''
-    publicity = request.GET.get('publicity')
-    if publicity == "true":
-        employees = Employee.objects.filter(publicity=True)
-    elif publicity == "false":
-        employees = Employee.objects.filter(publicity=False)
-    else:
-        employees = Employee.objects.all()
-        #employees = get_all(Employee)
-    return render(request, 'archive_app/employees.html', {'employees': employees})
-    '''
+
 
 def form_plays(request):
     genres = GenreType.objects.all()
