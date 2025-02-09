@@ -7,6 +7,7 @@ class Ensemble(models.Model):
     description = models.TextField(max_length=1500, null=True, blank=True) #vm44
     foundation_date = models.DateField() #co ak nebudu mat info, kedy vznikol subor? nebude lepsie dovolit aj tu null?
     dissolution_date = models.DateField(null=True, blank=True)
+    publicity = models.BooleanField(default=False)
     
     def __str__(self):
         return self.name
@@ -133,6 +134,7 @@ class Concert(models.Model):
     date = models.DateTimeField()
     name = models.CharField(max_length=100)
     description = models.TextField(max_length=1500, null=True, blank=True)
+    publicity = models.BooleanField(default=False)
     
 
     def __str__(self):
