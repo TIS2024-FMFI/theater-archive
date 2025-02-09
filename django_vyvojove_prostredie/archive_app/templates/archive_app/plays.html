@@ -49,6 +49,8 @@
                     {% endfor %}
                 </select>
             </div>
+
+            {% if user.is_authenticated %}
             <div class="filter">
                 <label for="zverejnene">Zverejnené</label>
                 <select id="zverejnene" class="dropdown" name="publicity">
@@ -57,6 +59,8 @@
                     <option value="false" {% if selected_publicity == "false" %}selected{% endif %}>Nezverejnené</option>
                 </select>
             </div>
+            {% endif %}
+
             <div class="filter search">
                 <label for="key-term">Kľúčový pojem</label>
                 <input id="key-term" type="text" class="search-input" name="key_term" placeholder="Sem napíš pojem">

@@ -22,8 +22,11 @@
             <!-- Host / umelec SND -->
             <div class="form-group">
                 <label for="snd-artist">Host/umelec SND:</label>
-                <select id="snd-artist">
+                <select id="snd-artist" name="employee_type" >
                     <option value="-">-</option>
+                    {% for etype in employee_form.employee_type.field.queryset %}
+                        <option value="{{ etype.id }}">{{ etype.name }}</option>
+                    {% endfor %}
                 </select>
             </div>
 
@@ -55,7 +58,7 @@
                     <div class="form-row" id="job_entry">
                         <div class="form-group">
                             <select id="category" name="{{ form.job.name }}">
-                                <option value="">Vyberte prácu</option>
+                                <option value="">Iné zamestnanie</option>
                                 {% for job in form.fields.job.queryset %}
                                     <option value="{{ job.id }}" {% if form.job.value == job.id %}selected{% endif %}>
                                         {{ job.name }}
@@ -63,6 +66,12 @@
                                 {% endfor %}
                             </select>
                         </div>
+
+                        <div class="new-job-field form-group">
+{#                            <label for="new-job">Or Enter a New Job</label>#}
+                            <input type="text" class="form-control new-job-input" placeholder="Enter new job name">
+                        </div>
+
                         <div class="form-group">
                             <label for="start-date">Začiatok:</label>
                             <input type="date" name="{{ form.date_start.name }}" value="{{ form.date_start.value|default:'' }}">
@@ -88,13 +97,15 @@
             </div>
 
 
-
+            <hr>
             <!-- Zložka, Dátumy Narodenia a Úmrtia -->
             <div class="form-row">
                 <div class="form-group">
                     <label for="folder">Zložka:</label>
                     <select id="folder">
-                        <option value="opera">Opera</option>
+                        {% for g in employee_form.genre_type.field.queryset %}
+                            <option value="{{ g.id }}">{{ g.name }}</option>
+                        {% endfor %}
                     </select>
                 </div>
                 <div class="form-group">
@@ -166,6 +177,17 @@
 </section>
 
     <script>
+         function toggleNewJobField() {
+            var selectField = document.getElementById("category");
+            var newJobField = document.querySelector(".new-job-field");
+
+            if (selectField.value === "") {
+                newJobField.style.display = "block";  // Show input if "Vyberte prácu" is selected
+            } else {
+                newJobField.style.display = "none";  // Hide otherwise
+            }
+        }
+
         document.querySelectorAll('.file-input').forEach((input) => {
             input.addEventListener('change', function () {
                 let file = this.files[0];
@@ -189,7 +211,10 @@
             });
         });
 
+         document.getElementById("category").addEventListener("change", toggleNewJobField);
+
         document.addEventListener("DOMContentLoaded", function () {
+            {#toggleNewJobField();#}
             let jobContainer = document.getElementById("jobContainer");
             let addButton = document.getElementById("add-job");
             let totalForms = document.querySelector("#id_employeejob_set-TOTAL_FORMS");
@@ -216,6 +241,27 @@
                     // Update form field names for Django formset
                     newEntry.innerHTML = newEntry.innerHTML.replace(/-\d+-/g, `-${formCount}-`);
 
+                    // Fix: Ensure the new select field correctly toggles the input field
+                    let selectField = newEntry.querySelector("select");
+                    let newJobField = newEntry.querySelector(".new-job-field");
+
+                    console.log("Cloned Select Field:", selectField); // Debugging line
+                    console.log("Cloned New Job Field:", newJobField); // Debugging line
+
+                    if (selectField && newJobField) {
+                        selectField.addEventListener("change", function () {
+                            if (this.value === "" || this.value === "-") {
+                                console.log("show");
+                                newJobField.style.display = "block";
+                            } else {
+                                newJobField.style.display = "none";
+                            }
+                        });
+
+                        // Ensure it is hidden initially
+                        newJobField.style.display = "none";
+                    }
+
                     // Clear input values
                     newEntry.querySelectorAll("input, select").forEach(input => {
                         if (input.type === "date") {
@@ -226,7 +272,6 @@
                     });
 
                     let removeButton = newEntry.querySelector(".remove-job, #remove-job");
-                    console.log(newEntry);
                     if (removeButton) {
                         removeButton.addEventListener("click", function () {
                            this.parentElement.parentElement.remove(); // Remove the entire job entry
