@@ -38,7 +38,14 @@ def list_ensembles(request):
     return render(request, 'archive_app/ensembles.html', {'ensembles':ensembles})
 
 def list_employees(request):
-    employees = get_all(Employee)
+    publicity = request.GET.get('publicity')
+    if publicity == "true":
+        employees = Employee.objects.filter(publicity=True)
+    elif publicity == "false":
+        employees = Employee.objects.filter(publicity=False)
+    else:
+        employees = Employee.objects.all()
+        #employees = get_all(Employee)
     return render(request, 'archive_app/employees.html', {'employees': employees})
 
 def form_plays(request):
