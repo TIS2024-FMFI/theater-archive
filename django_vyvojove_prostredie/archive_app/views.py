@@ -138,7 +138,7 @@ def list_employees(request):
     publicity = request.GET.get('publicity')
     first_name = request.GET.get('first_name')
     last_name = request.GET.get('last_name')
-    job = request.GET.get('job')
+    role = request.GET.get('role')
     sort_order = request.GET.get('sort_order')
     
     employees = Employee.objects.all()
@@ -173,13 +173,14 @@ def list_employees(request):
         'employees': employees,
         'first_names': first_names,
         'last_names': last_names,
-        'jobs': jobs,
+        'roles': roles,
         'selected_publicity': publicity,
         'selected_first_name': first_name,
         'selected_last_name': last_name,
-        'selected_job': job,
+        'selected_role': role,
         'selected_sort_order': sort_order,
     })
+
 
 
 def form_plays(request):
