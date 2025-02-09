@@ -22,6 +22,8 @@
                     <option value="desc" {% if selected_sort_order == "desc" %}selected{% endif %}>Od z po a</option>
                 </select>
             </div>
+
+            {% if user.is_authenticated %}
             <div class="filter">
                 <label for="zverejnene">Zverejnené</label>
                 <select id="zverejnene" class="dropdown" name="publicity">
@@ -30,6 +32,8 @@
                     <option value="false" {% if selected_publicity == "false" %}selected{% endif %}>Nezverejnené</option>
                 </select>
             </div>
+            {% endif %}
+
             <div class="filter">
                 <label for="concert_type">Výber udalosti</label>
                 <select id="concert_type" class="dropdown" name="concert_type">

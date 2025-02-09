@@ -43,8 +43,10 @@ def list_plays(request):
     if season and season != "-":
         month, year = season.split('-')
         plays = plays.filter(repeat__date__month=month, repeat__date__year=year)
-    
-    if publicity == "true":
+
+    if not request.user.is_authenticated:
+        plays = plays.filter(publicity=True)  # only public employees if not logged in
+    elif publicity == "true":
         plays = plays.filter(publicity=True)
     elif publicity == "false":
         plays = plays.filter(publicity=False)
@@ -76,8 +78,11 @@ def list_concerts_and_events(request):
     sort_order = request.GET.get('sort_order')
     
     concerts = Concert.objects.all()
-    
-    if publicity == "true":
+
+
+    if not request.user.is_authenticated:
+        concerts = concerts.filter(publicity=True)  # only public employees if not logged in
+    elif publicity == "true":
         concerts = concerts.filter(publicity=True)
     elif publicity == "false":
         concerts = concerts.filter(publicity=False)
@@ -107,8 +112,10 @@ def list_ensembles(request):
     sort_order = request.GET.get('sort_order')
     
     ensembles = Ensemble.objects.all()
-    
-    if publicity == "true":
+
+    if not request.user.is_authenticated:
+        ensembles = ensembles.filter(publicity=True)  # only public employees if not logged in
+    elif publicity == "true":
         ensembles = ensembles.filter(publicity=True)
     elif publicity == "false":
         ensembles = ensembles.filter(publicity=False)
@@ -136,7 +143,10 @@ def list_employees(request):
     
     employees = Employee.objects.all()
     
-    if publicity == "true":
+    if not request.user.is_authenticated:
+        employees = employees.filter(publicity=True)  # only public employees if not logged in
+
+    elif publicity == "true":
         employees = employees.filter(publicity=True)
     elif publicity == "false":
         employees = employees.filter(publicity=False)
@@ -148,7 +158,7 @@ def list_employees(request):
         employees = employees.filter(last_name=last_name)
     
     if role and role != "-":
-        employees = employees.filter(repeatperformer__role=role)
+        employees = employees.filter(employeejob__job__name=role)
     
     if sort_order == "asc":
         employees = employees.order_by('last_name')
@@ -157,7 +167,7 @@ def list_employees(request):
     
     first_names = Employee.objects.values_list('first_name', flat=True).distinct()
     last_names = Employee.objects.values_list('last_name', flat=True).distinct()
-    roles = RepeatPerformer.objects.values_list('role', flat=True).distinct()
+    roles = EmployeeJob.objects.filter(job__play_character=False).values_list('job__name', flat=True).distinct()
     
     return render(request, 'archive_app/employees.html', {
         'employees': employees,
@@ -176,7 +186,6 @@ def form_plays(request):
     genres = GenreType.objects.all()
     ensembles = Ensemble.objects.all()
     if request.method == 'POST':
-        print("AAAAAAAAA:", request.POST)
         form = PlayForm(request.POST)
         if form.is_valid():
             form.save()
