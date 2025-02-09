@@ -134,6 +134,7 @@ class Concert(models.Model):
     date = models.DateTimeField()
     name = models.CharField(max_length=100)
     description = models.TextField(max_length=1500, null=True, blank=True)
+    publicity = models.BooleanField(default=False)
     
 
     def __str__(self):

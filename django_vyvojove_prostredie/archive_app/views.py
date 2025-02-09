@@ -28,8 +28,36 @@ def list_plays(request):
     return render(request, 'archive_app/plays.html', {'plays':plays})
 
 def list_concerts_and_events(request):
-    concerts = get_all(Concert)
-    return render(request, 'archive_app/concerts.html', {'concerts':concerts})
+    publicity = request.GET.get('publicity')
+    concert_type_id = request.GET.get('concert_type')
+    sort_order = request.GET.get('sort_order')
+    
+    concerts = Concert.objects.all()
+    
+    if publicity == "true":
+        concerts = concerts.filter(publicity=True)
+    elif publicity == "false":
+        concerts = concerts.filter(publicity=False)
+    
+    if concert_type_id:
+        concerts = concerts.filter(concert_type_id=concert_type_id)
+    
+    if sort_order == "asc":
+        concerts = concerts.order_by('name')
+    elif sort_order == "desc":
+        concerts = concerts.order_by('-name')
+    
+    concert_types = ConcertType.objects.all()
+    
+    return render(request, 'archive_app/concerts.html', {
+        'concerts': concerts,
+        'concert_types': concert_types,
+        'selected_publicity': publicity,
+        'selected_concert_type': concert_type_id,
+        'selected_sort_order': sort_order,
+    })
+    #concerts = get_all(Concert)
+    #return render(request, 'archive_app/concerts.html', {'concerts':concerts})
 
 def list_ensembles(request):
     publicity = request.GET.get('publicity')
