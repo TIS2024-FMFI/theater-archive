@@ -28,5 +28,6 @@ urlpatterns = [
     path('ensembles/', views.list_ensembles, name='list_ensembles'),
     path('ensembles/add_ensemble/', views.form_ensembles, name='form_ensembles'),
     path('ensembles/get_ensemble/<int:id>', views.get_ensemble, name='get_ensemble'),
-    path('ensembles/edit/<int:ensemble_id>/', views.edit_ensemble, name='edit_ensemble')
+    path('ensembles/edit/<int:ensemble_id>/', views.edit_ensemble, name='edit_ensemble'),
+    path('ensembles/copy/<int:ensemble_id>/', views.copy_ensemble, name='copy_ensemble')
 ]
