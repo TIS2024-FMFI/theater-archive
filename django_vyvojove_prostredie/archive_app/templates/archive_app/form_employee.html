@@ -245,13 +245,23 @@
             }
 
             // Enable removing existing jobs
-            {#document.querySelectorAll(".remove-job, #remove-job").forEach(button => {#}
-            {#    button.addEventListener("click", function () {#}
-            {#        this.parentElement.parentElement.remove();#}
-            {#        totalForms.value = document.querySelectorAll("#jobContainer > div").length;#}
-            {#    });#}
+            //{#document.querySelectorAll(".remove-job, #remove-job").forEach(button => {#}
+            //{#    button.addEventListener("click", function () {#}
+            //{#        this.parentElement.parentElement.remove();#}
+            //{#        totalForms.value = document.querySelectorAll("#jobContainer > div").length;#}
+            //{#    });#}
             //});
-        });
+
+            //     document.addEventListener("DOMContentLoaded", function () {
+            //         document.querySelectorAll(".remove-job, #remove-job").forEach(button => {
+            //             button.addEventListener("click", function () {
+            //                 this.parentElement.parentElement.remove();
+            //                 const totalForms = document.querySelector("#id_form-TOTAL_FORMS");
+            //                 totalForms.value = document.querySelectorAll("#jobContainer > div").length;
+            //             });
+            //         });
+            //     });
+            });
 
 </script>
 
