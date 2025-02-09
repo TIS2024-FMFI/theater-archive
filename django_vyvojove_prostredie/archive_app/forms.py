@@ -37,7 +37,7 @@ class EmployeeForm(forms.ModelForm):
 
 class EmployeeJobForm(forms.ModelForm):
     job = forms.ModelChoiceField(
-        queryset=Job.objects.all(),
+        queryset=Job.objects.filter(play_character=False),
         required=False,  # Allow empty so users can enter a new job
         widget=forms.Select(attrs={'class': 'form-control'}),
         label="Select Existing Job"

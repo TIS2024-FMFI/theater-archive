@@ -1,2 +1,3 @@
 django_vyvojove_prostredie/venv2/
-django_vyvojove_prostredie/archive_app/__pycache__
+django_vyvojove_prostredie/archive_app/__pycache_
+django_vyvojove_prostredie/archive_app/migrations/__pycache___
