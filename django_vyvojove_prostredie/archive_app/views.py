@@ -1,5 +1,5 @@
 from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
@@ -131,7 +131,7 @@ def list_employees(request):
     publicity = request.GET.get('publicity')
     first_name = request.GET.get('first_name')
     last_name = request.GET.get('last_name')
-    role = request.GET.get('role')
+    job = request.GET.get('job')
     sort_order = request.GET.get('sort_order')
     
     employees = Employee.objects.all()
@@ -147,8 +147,8 @@ def list_employees(request):
     if last_name and last_name != "-":
         employees = employees.filter(last_name=last_name)
     
-    if role and role != "-":
-        employees = employees.filter(repeatperformer__role=role)
+    if job and job != "-":
+        employees = employees.filter(employeejob__job_id=job)
     
     if sort_order == "asc":
         employees = employees.order_by('last_name')
@@ -157,17 +157,17 @@ def list_employees(request):
     
     first_names = Employee.objects.values_list('first_name', flat=True).distinct()
     last_names = Employee.objects.values_list('last_name', flat=True).distinct()
-    roles = RepeatPerformer.objects.values_list('role', flat=True).distinct()
+    jobs = Job.objects.filter(play_character=False)
     
     return render(request, 'archive_app/employees.html', {
         'employees': employees,
         'first_names': first_names,
         'last_names': last_names,
-        'roles': roles,
+        'jobs': jobs,
         'selected_publicity': publicity,
         'selected_first_name': first_name,
         'selected_last_name': last_name,
-        'selected_role': role,
+        'selected_job': job,
         'selected_sort_order': sort_order,
     })
 
@@ -197,7 +197,16 @@ def form_concerts_and_events(request):
     return render(request, 'archive_app/form_concerts_and_events.html')
 
 def form_ensembles(request):
-    return render(request,'archive_app/form_ensemble.html')
+    if request.method == "POST":
+        form = EnsembleForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('list_ensembles')  # Redirect to the list of ensembles after saving
+    else:
+        form = EnsembleForm()
+    
+    return render(request, 'archive_app/form_ensemble.html', {'form': form})
+    #return render(request,'archive_app/form_ensemble.html')
 
 
 def form_employees(request): #virtualmachine44
@@ -420,3 +429,21 @@ def delete_user(request, user_id):
         'success': success_message,
         'users_profiles': users_profiles,
     })
+
+
+def edit_ensemble(request, ensemble_id):
+    ensemble = get_object_or_404(Ensemble, id=ensemble_id)
+    
+    if request.method == "POST":
+        form = EnsembleForm(request.POST, instance=ensemble)
+        if form.is_valid():
+            form.save()
+            print("Form is valid and saved")
+            return redirect('get_ensemble', id=ensemble.id)
+        else:
+            print("Form is not valid")
+            print(form.errors)
+    else:
+        form = EnsembleForm(instance=ensemble)
+        
+    return render(request, 'archive_app/form_ensemble.html', {'form': form, 'ensemble': ensemble})

@@ -5,17 +5,17 @@ urlpatterns = [
     path("", views.main_page, name = "main_page"),
     path('plays/', views.list_plays, name='list_plays'),
     path('concerts_and_events/', views.list_concerts_and_events, name='list_concerts_and_events'),
-    path('ensembles/', views.list_ensembles, name='list_ensembles'),
+    
     path('employees/', views.list_employees, name='list_employees'),
     path('plays/add_play/', views.form_plays, name='form_plays'),
     path('plays/get_play/<int:id>/add_repeat/', views.form_repeats, name='form_repeats'),
     path('concerts_and_events/add_concert_or_event/', views.form_concerts_and_events, name='form_concerts_and_events'),
-    path('ensembles/add_ensemble/', views.form_ensembles, name='form_ensembles'),
+    
     
     path('plays/get_play/<int:id>', views.get_play, name='get_play'),
     path('plays/get_play/<int:id_play>/get_repeat/<int:id_repeat>', views.get_repeat, name='get_repeat'),
     path('concerts_and_events/get_concert_or_event/<int:id_concert>', views.get_concert_or_event, name='get_concert_or_event'),
-    path('ensembles/get_ensemble/<int:id>', views.get_ensemble, name='get_ensemble'),
+    
     path('employees/get_employee/<int:id>', views.get_employee, name='get_employee'),
     path('admin_section/', views.admin_section, name='admin_section'),
     path('login/', views.login_view, name='login'),
@@ -24,4 +24,9 @@ urlpatterns = [
     path('delete-user/<int:user_id>/', views.delete_user, name='delete_user'),
  
     path('employees/add_employee/', views.form_employees, name='form_employees'),
+
+    path('ensembles/', views.list_ensembles, name='list_ensembles'),
+    path('ensembles/add_ensemble/', views.form_ensembles, name='form_ensembles'),
+    path('ensembles/get_ensemble/<int:id>', views.get_ensemble, name='get_ensemble'),
+    path('ensembles/edit/<int:ensemble_id>/', views.edit_ensemble, name='edit_ensemble')
 ]
