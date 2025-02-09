@@ -33,7 +33,7 @@ class Play(models.Model):
     author_last_name = models.CharField(max_length=100, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     publicity = models.BooleanField(default=False)
-    ensemble = models.ForeignKey('Ensemble', on_delete=models.SET_NULL, null=True)
+    ensemble = models.ForeignKey('Ensemble', on_delete=models.CASCADE)
     genre_type = models.ForeignKey('GenreType', on_delete=models.SET_NULL, null=True, blank=True)
     subtitle = models.CharField(max_length=200, null=True, blank=True) #vm44
 
@@ -49,24 +49,24 @@ class Document(models.Model):
 
 
 class PlayDocument(models.Model):
-    play = models.ForeignKey('Play', on_delete=models.SET_NULL, null=True)
-    document = models.ForeignKey('Document', on_delete=models.SET_NULL, null=True)
+    play = models.ForeignKey('Play', on_delete=models.CASCADE)
+    document = models.ForeignKey('Document', on_delete=models.CASCADE)
 
     def __str__(self):
         return f"{self.play} - {self.document}"
 
 
 class ConcertDocument(models.Model):
-    concert = models.ForeignKey('Concert', on_delete=models.SET_NULL, null=True)
-    document = models.ForeignKey('Document', on_delete=models.SET_NULL, null=True)
+    concert = models.ForeignKey('Concert', on_delete=models.CASCADE)
+    document = models.ForeignKey('Document', on_delete=models.CASCADE)
 
     def __str__(self):
         return f"{self.concert} - {self.document}"
 
 
 class EmployeeDocument(models.Model):
-    employee = models.ForeignKey('Employee', on_delete=models.SET_NULL, null=True)
-    document = models.ForeignKey('Document', on_delete=models.SET_NULL, null=True)
+    employee = models.ForeignKey('Employee', on_delete=models.CASCADE)
+    document = models.ForeignKey('Document', on_delete=models.CASCADE)
 
     def __str__(self):
         return f"{self.employee} - {self.document}"
@@ -101,8 +101,8 @@ class Employee(models.Model):
 
 
 class EmployeeJob(models.Model):
-    employee = models.ForeignKey('Employee', on_delete=models.SET_NULL, null=True)
-    job = models.ForeignKey('Job', on_delete=models.SET_NULL, null=True)
+    employee = models.ForeignKey('Employee', on_delete=models.CASCADE)
+    job = models.ForeignKey('Job', on_delete=models.CASCADE)
     date_start = models.DateField()
     date_end = models.DateField(null=True, blank=True)
 
@@ -119,9 +119,9 @@ class Job(models.Model):
 
 
 class PlayPerformer(models.Model):
-    play = models.ForeignKey('Play', on_delete=models.SET_NULL, null=True)
-    employee = models.ForeignKey('Employee', null=True, on_delete=models.SET_NULL, null=True)
-    employee_job = models.ForeignKey('EmployeeJob', on_delete=models.SET_NULL, null=True)
+    play = models.ForeignKey('Play', on_delete=models.CASCADE)
+    employee = models.ForeignKey('Employee', null=True, on_delete=models.CASCADE)
+    employee_job = models.ForeignKey('EmployeeJob', on_delete=models.CASCADE)
     job = models.CharField(max_length=100, null=True)
 
     def __str__(self):
@@ -141,8 +141,8 @@ class Concert(models.Model):
 
 
 class ConcertPerformer(models.Model):
-    concert = models.ForeignKey('Concert', on_delete=models.SET_NULL, null=True)
-    employee = models.ForeignKey('Employee', on_delete=models.SET_NULL, null=True)
+    concert = models.ForeignKey('Concert', on_delete=models.CASCADE)
+    employee = models.ForeignKey('Employee', on_delete=models.CASCADE)
     job = models.CharField(max_length=50) 
 
     def __str__(self):
@@ -157,7 +157,7 @@ class ConcertType(models.Model):
 
 
 class Repeat(models.Model):
-    play = models.ForeignKey('Play', on_delete=models.SET_NULL, null=True)
+    play = models.ForeignKey('Play', on_delete=models.CASCADE)
     room = models.ForeignKey('Room', on_delete=models.SET_NULL, null=True)
     date = models.DateTimeField( )
     publicity = models.BooleanField(default=False)
@@ -176,14 +176,14 @@ class RepeatType(models.Model):
 
 
 class RepeatPerformer(models.Model):
-    repeat = models.ForeignKey('Repeat', on_delete=models.SET_NULL, null=True)
-    employee_job = models.ForeignKey('EmployeeJob', on_delete=models.SET_NULL, null=True) #toto je rola
+    repeat = models.ForeignKey('Repeat', on_delete=models.CASCADE)
+    employee_job = models.ForeignKey('EmployeeJob', on_delete=models.CASCADE) #toto je rola
 
     def __str__(self):
         return f"{self.repeat} - {self.employee_job}"
 
 class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     real_name = models.CharField(max_length=100)
 
     def __str__(self):
