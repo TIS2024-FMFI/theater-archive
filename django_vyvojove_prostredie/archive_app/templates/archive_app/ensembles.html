@@ -14,26 +14,30 @@
 
     <!-- Filters Section -->
     <section class="filters">
-        <div class="filter">
-            <label for="abecedne">Abecedne</label>
-            <select id="abecedne" class="dropdown">
-                <option>Od a po z</option>
-                <option>Od z po a</option>
-            </select>
-        </div>
-        <div class="filter">
-            <label for="zverejnene">Zverejnené</label>
-            <select id="zverejnene" class="dropdown">
-                <option>-</option>
-            </select>
-        </div>
-        <div class="filter search">
-            <label for="key-term">Kľúčový pojem</label>
-            <input id="key-term" type="text" class="search-input" placeholder="Sem napíš pojem">
-        </div>
-        <div class="filter">
-            <button class="btn ">Vyhľadať</button>
-        </div>
+        <form class="filters" id="search-form" method="get" action="{% url 'list_ensembles' %}">
+            <div class="filter">
+                <label for="abecedne">Abecedne</label>
+                <select id="abecedne" class="dropdown" name="sort_order">
+                    <option value="asc" {% if selected_sort_order == "asc" %}selected{% endif %}>Od a po z</option>
+                    <option value="desc" {% if selected_sort_order == "desc" %}selected{% endif %}>Od z po a</option>
+                </select>
+            </div>
+            <div class="filter">
+                <label for="zverejnene">Zverejnené</label>
+                <select id="zverejnene" class="dropdown" name="publicity">
+                    <option value="" {% if selected_publicity == "" %}selected{% endif %}>-</option>
+                    <option value="true" {% if selected_publicity == "true" %}selected{% endif %}>Zverejnené</option>
+                    <option value="false" {% if selected_publicity == "false" %}selected{% endif %}>Nezverejnené</option>
+                </select>
+            </div>
+            <div class="filter search">
+                <label for="key-term">Kľúčový pojem</label>
+                <input id="key-term" type="text" class="search-input" name="key_term" placeholder="Sem napíš pojem" value="{{ request.GET.key_term }}">
+            </div>
+            <div class="filter">
+                <button class="btn" id="search-button" type="submit">Vyhľadať</button>
+            </div>
+        </form>
     </section>
 
     <!-- Results Section -->

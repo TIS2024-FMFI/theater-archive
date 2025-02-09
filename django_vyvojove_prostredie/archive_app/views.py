@@ -1,11 +1,9 @@
-from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
-from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.db import models
 from .models import *
@@ -34,8 +32,29 @@ def list_concerts_and_events(request):
     return render(request, 'archive_app/concerts.html', {'concerts':concerts})
 
 def list_ensembles(request):
-    ensembles = get_all(Ensemble)
-    return render(request, 'archive_app/ensembles.html', {'ensembles':ensembles})
+    publicity = request.GET.get('publicity')
+    sort_order = request.GET.get('sort_order')
+    
+    ensembles = Ensemble.objects.all()
+    
+    if publicity == "true":
+        ensembles = ensembles.filter(publicity=True)
+    elif publicity == "false":
+        ensembles = ensembles.filter(publicity=False)
+    
+    if sort_order == "asc":
+        ensembles = ensembles.order_by('name')
+    elif sort_order == "desc":
+        ensembles = ensembles.order_by('-name')
+    
+    return render(request, 'archive_app/ensembles.html', {
+        'ensembles': ensembles,
+        'selected_publicity': publicity,
+        'selected_sort_order': sort_order,
+    })
+    
+    #ensembles = get_all(Ensemble)
+    #return render(request, 'archive_app/ensembles.html', {'ensembles':ensembles})
 
 def list_employees(request):
     publicity = request.GET.get('publicity')
@@ -47,6 +66,52 @@ def list_employees(request):
         employees = Employee.objects.all()
         #employees = get_all(Employee)
     return render(request, 'archive_app/employees.html', {'employees': employees})
+    '''
+    publicity = request.GET.get('publicity')
+    first_name = request.GET.get('first_name')
+    sort_order = request.GET.get('sort_order')
+    ensemble_id = request.GET.get('ensemble')
+    job_id = request.GET.get('job')
+    key_term = request.GET.get('key_term')
+    
+    employees = Employee.objects.all()
+    
+    if publicity == "true":
+        employees = employees.filter(publicity=True)
+    elif publicity == "false":
+        employees = employees.filter(publicity=False)
+    
+    if first_name and first_name != "-":
+        employees = employees.filter(first_name=first_name)
+    
+    if ensemble_id and ensemble_id != "-":
+        employees = employees.filter(ensemble_id=ensemble_id)
+    
+    if job_id and job_id != "-":
+        employees = employees.filter(employeejob__job_id=job_id)
+    
+    if key_term:
+        employees = employees.filter(description__icontains=key_term)
+    
+    if sort_order == "asc":
+        employees = employees.order_by('last_name')
+    elif sort_order == "desc":
+        employees = employees.order_by('-last_name')
+    
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        employees_data = list(employees.values('id', 'first_name', 'last_name'))
+        return JsonResponse(employees_data, safe=False)
+    
+    first_names = Employee.objects.values_list('first_name', flat=True).distinct()
+    ensembles = Ensemble.objects.all()
+    jobs = Job.objects.all()
+    
+    return render(request, 'archive_app/employees.html', {
+        'employees': employees,
+        'first_names': first_names,
+        'ensembles': ensembles,
+        'jobs': jobs,
+    })'''
 
 def form_plays(request):
     genres = GenreType.objects.all()
