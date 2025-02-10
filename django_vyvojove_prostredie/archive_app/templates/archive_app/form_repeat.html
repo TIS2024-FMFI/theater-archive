@@ -31,19 +31,28 @@
 
             <!-- Cast Section -->
             <h3>Obsadenie</h3>
-            <div class="form-group">
-                <label for="role">Postava:</label>
-                <input type="text" id="role" placeholder="Postava">
-                <button type="button" class="btn">&#10006;</button>
-            </div>
+            <div class="role_container">
+                <div id="role_entry">
+                    <div class="form-group">
+                        <label for="role">Postava:</label>
+                        <input type="text" id="role" placeholder="Postava">
+                        <button type="button" class="btn remove-role">&#10006;</button>
+                    </div>
 
-            <div class="form-group">
-                <label for="actor">Herec / Herečka:</label>
-                <input type="text" id="actor" placeholder="Umelec">
-                <button type="button" class="btn">&#10006;</button>
-            </div>
+                    <div class="form-group actor">
+                        <label for="actor">Herec / Herečka:</label>
+                        <input type="text" id="actor" placeholder="Umelec">
+                        <button type="button" class="btn" style="visibility: hidden;">&#10006;</button>
+                    </div>
 
-            <button type="button" class="btn">&#10010; pridať umelca</button>
+                    <div class="form-group">
+                        <label></label>
+                        <button type="button" class="add-btn add-actor" id="add_actor">&#10010;</button>
+                    </div>
+
+                </div>
+            </div>
+            <button type="button" class="add-btn role" id="add_role">&#10010; pridať postavu</button>
 
             <!-- File Upload Section -->
             <h3> Prílohy:</h3>
@@ -109,9 +118,12 @@
     });
 
     // Add Actor Button
-    document.querySelector('.add-btn').addEventListener('click', function () {
+    function addActorButton(entry) {
         let actorSection = document.createElement("div");
         actorSection.classList.add("form-group");
+        actorSection.classList.add("actor");
+
+        let label = document.createElement("label");
 
         let newActor = document.createElement("input");
         newActor.type = "text";
@@ -120,16 +132,82 @@
         let removeBtn = document.createElement("button");
         removeBtn.type = "button";
         removeBtn.classList.add("remove-btn");
-        removeBtn.textContent = "&#10006";
+        removeBtn.textContent = "✖";
+        removeBtn.className = "btn";
 
         removeBtn.addEventListener("click", function () {
             actorSection.remove();
         });
 
+        actorSection.appendChild(label);
         actorSection.appendChild(newActor);
         actorSection.appendChild(removeBtn);
 
-        document.querySelector(".add-btn").before(actorSection);
+        entry.querySelector(".actor").after(actorSection);
+    }
+     document.querySelector(".add-actor").addEventListener("click", function () {
+         addActorButton(document);
+     });
+
+    // Add Actor Button
+    document.querySelector('.role').addEventListener('click', function () {
+        let jobContainer = document.querySelector(".role_container");
+        {#let addButton = document.querySelector('.role');#}
+        {#let totalForms = document.querySelector("#id_repeatperformer_set-TOTAL_FORMS");#}
+        {#totalForms.value = document.querySelectorAll("#role_container > .form-row").length;#}
+        console.log("AAAAAAAAAAA");
+
+        {#let formCount = parseInt(totalForms.value);#}
+        let totalForms = 2;
+        let template = document.getElementById("role_entry");
+        console.log(template);
+        if (!template) {
+            console.error("Error: 'role_entry' element not found.");
+            return;
+        }
+
+        let newEntry = template.cloneNode(true);
+        newEntry.removeAttribute("id"); // Remove duplicate ID
+
+        let actors = newEntry.querySelectorAll(".form-group.actor");
+        console.log(actors);
+        actors.forEach((actor, index) => {
+            if (index > 0) {
+                actor.remove();
+            }
+        });
+
+        // Update form field names for Django formset
+        {#newEntry.innerHTML = newEntry.innerHTML.replace(/-\d+-/g, `-${formCount}-`);#}
+
+        // Clear input values
+        newEntry.querySelectorAll("input, input").forEach(input => {
+            if (input.type === "text")
+                input.value = "";
+        });
+
+        let removeButton = newEntry.querySelector(".remove-role");
+        if (removeButton) {
+            removeButton.addEventListener("click", function () {
+                if (totalForms > 1) {
+                    console.log(this.parentElement);
+                    this.parentElement.parentElement.remove(); // Remove the entire job entry
+                    {#totalForms.value = document.querySelectorAll("#role_container > div").length;#}
+                }
+            });
+        } else {
+            console.error("Error: 'remove-job' button not found inside new entry.");
+        }
+
+        newEntry.querySelector(".add-actor").addEventListener("click", function () {
+             addActorButton(newEntry);
+        });
+
+        // Append the new job entry inside the job container
+        jobContainer.appendChild(newEntry);
+        {#totalForms.value = formCount + 1;#}
+
+
     });
 </script>
 {% endblock %}

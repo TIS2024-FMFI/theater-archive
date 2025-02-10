@@ -8,20 +8,23 @@
         <h1> {{ employee.last_name }} </h1>
     </div>
     <hr>
-    <div class="title-with-subheading">
+    {% if request.user.is_authenticated and request.user.is_staff %}
+        <div class="action-buttons" >
+            <a href="{% url 'edit_employee' employee.id %}" class="btn btn-primary">Upraviť</a>
+            <button class="copy">Vytvoriť kópiu</button>
+        </div>
+    {% endif %}
+    <div>
         {% for role in roles %}
-            {% if role.job.play_character %}
+            {% if not role.job.play_character %}
+                <div class="title-with-subheading">
                 <h2>{{ role.job }}</h2>
                 <p> {{ role.date_start }} {% if role.date_end %} - {{ role.date_end }} {% endif %} </p>
+                </div>
             {% endif %}
         {% endfor %}
     </div>
-    {% if request.user.is_authenticated and request.user.is_staff %}
-    <div class="action-buttons" >
-        <button class="edit">Upraviť</button>
-        <button class="copy">Vytvoriť kópiu</button>
-    </div>
-    {% endif %}
+
     <div class="container-profile">
         <div class="profile">
              <p><em> {{ employee_type }} </em></p>
