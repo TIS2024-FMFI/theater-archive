@@ -28,5 +28,8 @@ urlpatterns = [
     path('ensembles/', views.list_ensembles, name='list_ensembles'),
     path('ensembles/add_ensemble/', views.form_ensembles, name='form_ensembles'),
     path('ensembles/get_ensemble/<int:id>', views.get_ensemble, name='get_ensemble'),
-    path('ensembles/edit/<int:ensemble_id>/', views.edit_ensemble, name='edit_ensemble')
+    path('ensembles/edit/<int:ensemble_id>/', views.edit_ensemble, name='edit_ensemble'),
+    path('plays/edit/<int:id>/', views.edit_play, name='edit_play'),
+    path('plays/get_play/<int:id_play>/edit/<int:id_repeat>', views.edit_repeat, name='edit_repeat'),
+    path('employee/edit/<int:id>/', views.edit_employee, name='edit_employee')
 ]

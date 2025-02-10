@@ -4,49 +4,35 @@
 <section class="content">
     <link rel="stylesheet" href="{% static 'archive_app/form_concerts_and_events.css' %}">
     <div class="form-container">
-        <h2>Pridanie umelca</h2>
-        <form>
+
+        <h2>{% if employee.id %}Upraviť{% else %}Pridať{% endif %} umelca</h2>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
 
             <!-- First Row: Meno & Priezvisko -->
             <div class="form-row">
                 <div class="form-group">
                     <label for="artist-name">Meno:</label>
-                    <input type="text" id="artist-name" placeholder="meno umelca">
+                    <input type="text" id="artist-name" placeholder="meno umelca" name="first_name" {% if employee.id %} value="{{ employee_form.first_name.value }}" {% endif %}>
                 </div>
                 <div class="form-group">
                     <label for="artist-surname">Priezvisko:</label>
-                    <input type="text" id="artist-surname" placeholder="priezvisko umelca">
+                    <input type="text" id="artist-surname" placeholder="priezvisko umelca" name="last_name" {% if employee.id %} value="{{ employee_form.last_name.value }}" {% endif %}>
                 </div>
             </div>
 
             <!-- Host / umelec SND -->
             <div class="form-group">
                 <label for="snd-artist">Host/umelec SND:</label>
-                <select id="snd-artist" name="employee_type" >
+                <select id="snd-artist" name="employee_type">
                     <option value="-">-</option>
                     {% for etype in employee_form.employee_type.field.queryset %}
-                        <option value="{{ etype.id }}">{{ etype.name }}</option>
+                        <option value="{{ etype.id }}" {% if employee.employee_type == etype %}selected{% endif %}>{{ etype.name }}</option>
                     {% endfor %}
                 </select>
             </div>
 
             <hr style="height: 0px; border: none; border-top: 1px solid #ccc; ">
-
-
-{#            <!-- Dátumy Zamestnania -->#}
-{#            <div class="form-group">#}
-{#                <label for="start-date">Dátumy zamestnania:</label>#}
-{#                <div class="form-row">#}
-{#                    <div class="form-group">#}
-{#                        <label for="start-date">Začiatok:</label>#}
-{#                        <input type="date" id="start-date" value="2024-11-17">#}
-{#                    </div>#}
-{#                    <div class="form-group">#}
-{#                        <label for="end-date">Koniec:</label>#}
-{#                        <input type="date" id="end-date" value="2024-11-17">#}
-{#                    </div>#}
-{#                </div>#}
-{#            </div>#}
 
             <!-- Zaradenie & Odbor -->
             <div class="form-group" id="jobContainer">
@@ -56,8 +42,10 @@
                 <div class="form-row">
 
                     <div class="form-row" id="job_entry">
+                        {{ form.id.as_hidden }}
+
                         <div class="form-group">
-                            <select id="category" name="{{ form.job.name }}">
+                            <select id="category" name="{{ form.job.html_name }}">
                                 <option value="">Iné zamestnanie</option>
                                 {% for job in form.fields.job.queryset %}
                                     <option value="{{ job.id }}" {% if form.job.value == job.id %}selected{% endif %}>
@@ -67,24 +55,24 @@
                             </select>
                         </div>
 
-                        <div class="new-job-field form-group">
+                        <div class="new-job-field form-group" style="display: block">
 {#                            <label for="new-job">Or Enter a New Job</label>#}
-                            <input type="text" class="form-control new-job-input" placeholder="Enter new job name">
+                            <input type="text"  name="{{ form.new_job_name.html_name }}" class="form-control new-job-input" placeholder="Zadajte iné zamestnanie">
                         </div>
 
                         <div class="form-group">
                             <label for="start-date">Začiatok:</label>
-                            <input type="date" name="{{ form.date_start.name }}" value="{{ form.date_start.value|default:'' }}">
+                            <input type="date" name="{{ form.date_start.html_name }}" value="{{ form.date_start.value|date:"Y-m-d" }}">
                         </div>
                         <div class="form-group">
                             <label for="end-date">Koniec:</label>
-                            <input type="date" name="{{ form.date_end.name }}" value="{{ form.date_end.value|default:'' }}">
+                            <input type="date" name="{{ form.date_end.html_name }}" value="{{ form.date_end.value|date:"Y-m-d" }}">
                         </div>
+                        <input type="checkbox" name="{{ form.DELETE.html_name }}" class="delete-checkbox" style="display: none;">
                         <div class="form-group">
                             <button type="button" class="remove-job btn">✖</button>
                         </div>
                         <hr style="height: 0px; border: none; border-top: 1px solid #ccc; ">
-                        <button type="button" class="btn" id="add-job">&#10010;</button>
 
                     </div>
 
@@ -96,59 +84,65 @@
                 {% endfor %}
             </div>
 
+            <div class="form-group">
+                <label></label>
+                <button type="button" class="btn" id="add-job">&#10010;</button>
+            </div>
 
             <hr>
             <!-- Zložka, Dátumy Narodenia a Úmrtia -->
             <div class="form-row">
                 <div class="form-group">
                     <label for="folder">Zložka:</label>
-                    <select id="folder">
+                    <select id="folder" name="genre_type">
                         {% for g in employee_form.genre_type.field.queryset %}
-                            <option value="{{ g.id }}">{{ g.name }}</option>
+                            <option value="{{ g.id }}" {% if employee.genre_type == g %}selected{% endif %}>{{ g.name }}</option>
                         {% endfor %}
                     </select>
                 </div>
                 <div class="form-group">
                     <label for="birth-date">Dátum narodenia:</label>
-                    <input type="date" id="birth-date" value="1983-07-21">
+                    <input type="date" id="birth-date" name="date_of_birth" {% if employee.id %} value="{{ employee_form.date_of_birth.value|date:"Y-m-d" }}" {% endif %}>
                 </div>
                 <div class="form-group">
                     <label for="death-date">Dátum úmrtia:</label>
-                    <input type="date" id="death-date">
+                    <input type="date" id="death-date" name="date_of_death" {% if employee.date_of_death %} value="{{ employee_form.date_of_death.value|date:"Y-m-d" }}" {% endif %}>
                 </div>
                 <div class="form-group">
                     <label></label>
                     <label class="inline-checkbox">
-                        <input type="checkbox" id="publish-dates"> zverejniť dátumy
+                        <input type="checkbox" id="publish-dates" name="date_publicity" {% if employee_form.date_publicity.value == True %} checked {% endif %}> zverejniť dátumy
                     </label>
                 </div>
             </div>
 
-           <hr style="height: 0px; border: none; border-top: 1px solid #ccc; ">
+           <hr>
             <!-- Narodenie & Miesto úmrtia -->
             <div class="form-row">
                 <div class="form-group">
                     <label for="birthplace">Narodený/á:</label>
-                    <input type="text" id="birthplace" placeholder="miesto narodenia">
+                    <input type="text" id="birthplace" placeholder="miesto narodenia" name="place_of_birth" {% if employee.place_of_birth %} value="{{ employee.place_of_birth }}" {% endif %}>
                 </div>
                 <div class="form-group">
                     <label for="deathplace">Miesto úmrtia:</label>
-                    <input type="text" id="deathplace" placeholder="miesto úmrtia">
+                    <input type="text" id="deathplace" placeholder="miesto úmrtia" name="place_of_death" {% if employee.place_of_death %} value="{{ employee.place_of_death }}" {% endif %}>
                 </div>
             </div>
 
             <!-- Súbor Selection -->
             <div class="form-group">
                 <label for="file">Súbor:</label>
-                <select id="file">
-                    <option value="opera_snd">Opera SND</option>
+                <select id="file" name="ensemble">
+                   {% for e in employee_form.ensemble.field.queryset %}
+                        <option value="{{ e.id }}" {% if employee.ensemble == e %}selected{% endif %}>{{ e.name }}</option>
+                    {% endfor %}
                 </select>
             </div>
 
             <!-- Popis -->
             <div class="form-group">
                 <label for="description">Popis:</label>
-                <textarea id="description" rows="5"></textarea>
+                <textarea id="description" rows="5" name="description" >{% if employee.id %} {{employee.description}} {% endif %}</textarea>
             </div>
 
             <h3> Prílohy:</h3>
@@ -168,7 +162,7 @@
 
             <div class="form-actions">
                 <label for="publish" class="publish">
-                    <input type="checkbox" id="publish">Zverejniť
+                    <input type="checkbox" id="publish" name="publicity" {% if employee_form.publicity.value == True %} checked {% endif %}>Zverejniť
                 </label>
                 <button type="submit" class="submit">Uložiť</button>
             </div>
@@ -182,9 +176,9 @@
             var newJobField = document.querySelector(".new-job-field");
 
             if (selectField.value === "") {
-                newJobField.style.display = "block";  // Show input if "Vyberte prácu" is selected
+                newJobField.style.display = "block";
             } else {
-                newJobField.style.display = "none";  // Hide otherwise
+                newJobField.style.display = "none";
             }
         }
 
@@ -214,10 +208,61 @@
          document.getElementById("category").addEventListener("change", toggleNewJobField);
 
         document.addEventListener("DOMContentLoaded", function () {
-            //toggleNewJobField();
             let jobContainer = document.getElementById("jobContainer");
             let addButton = document.getElementById("add-job");
             let totalForms = document.querySelector("#id_employeejob_set-TOTAL_FORMS");
+            totalForms.value = document.querySelectorAll("#jobContainer > .form-row").length;
+
+            function attachJobListeners(jobEntry) {
+                // Handle category dropdown change for existing entries
+                let selectField = jobEntry.querySelector("select");
+                let newJobField = jobEntry.querySelector(".new-job-field");
+
+                if (selectField && newJobField) {
+                    selectField.addEventListener("change", function () {
+                        if (this.value === "" || this.value === "-") {
+                            newJobField.style.display = "block";
+                        } else {
+                            newJobField.style.display = "none";
+                        }
+                    });
+
+                    if (selectField.value === "")
+                        newJobField.style.display = "block";
+                    else
+                        newJobField.style.display = "none";
+                }
+
+                {#let startDateField = jobEntry.querySelector("input[name*='date_start']");#}
+                {#let endDateField = jobEntry.querySelector("input[name*='date_end']");#}
+
+                {#if (startDateField) startDateField.value = "";#}
+                {#if (endDateField) endDateField.value = "";#}
+
+                // handle remove job button
+                let deleteField = jobEntry.querySelector("input[type='checkbox'][name*='DELETE']");
+                let removeButton = jobEntry.querySelector(".remove-job");
+                if (removeButton) {
+                    removeButton.addEventListener("click", function () {
+                        console.log(document.querySelectorAll("#jobContainer > .form-row:not([style*='display: none'])").length)
+                        if ( document.querySelectorAll("#jobContainer > .form-row:not([style*='display: none'])").length > 1) {
+                            deleteField.checked = true;
+                            {#jobEntry.remove();#}
+                            jobEntry.style.display = "none";
+                            {#totalForms.value = document.querySelectorAll("#jobContainer > .form-row").length;#}
+                        }
+                    });
+                }
+
+                // hide add button
+                let existingAddButton = jobEntry.querySelector("#add-job");
+                if (existingAddButton) {
+                    existingAddButton.style.display = "none";
+                }
+            }
+
+            // Attach event listeners to existing job entries on page load
+            document.querySelectorAll("#jobContainer > .form-row").forEach(attachJobListeners);
 
             if (addButton) {
                 addButton.addEventListener("click", function () {
@@ -258,8 +303,10 @@
                             }
                         });
 
-                        // Ensure it is hidden initially
-                        newJobField.style.display = "none";
+                        if (selectField.value === "")
+                            newJobField.style.display = "none";
+                        else
+                            newJobField.style.display = "block";
                     }
 
                     // Clear input values
@@ -274,8 +321,10 @@
                     let removeButton = newEntry.querySelector(".remove-job, #remove-job");
                     if (removeButton) {
                         removeButton.addEventListener("click", function () {
-                           this.parentElement.parentElement.remove(); // Remove the entire job entry
-                            totalForms.value = document.querySelectorAll("#jobContainer > div").length;
+                            if (totalForms.value > 1) {
+                                this.parentElement.parentElement.remove(); // Remove the entire job entry
+                                totalForms.value = document.querySelectorAll("#jobContainer > div").length;
+                            }
                         });
                     } else {
                         console.error("Error: 'remove-job' button not found inside new entry.");
@@ -289,23 +338,6 @@
                 console.error("Error: 'add-job' button not found.");
             }
 
-            // Enable removing existing jobs
-            //{#document.querySelectorAll(".remove-job, #remove-job").forEach(button => {#}
-            //{#    button.addEventListener("click", function () {#}
-            //{#        this.parentElement.parentElement.remove();#}
-            //{#        totalForms.value = document.querySelectorAll("#jobContainer > div").length;#}
-            //{#    });#}
-            //});
-
-            //     document.addEventListener("DOMContentLoaded", function () {
-            //         document.querySelectorAll(".remove-job, #remove-job").forEach(button => {
-            //             button.addEventListener("click", function () {
-            //                 this.parentElement.parentElement.remove();
-            //                 const totalForms = document.querySelector("#id_form-TOTAL_FORMS");
-            //                 totalForms.value = document.querySelectorAll("#jobContainer > div").length;
-            //             });
-            //         });
-            //     });
             });
 
 </script>
