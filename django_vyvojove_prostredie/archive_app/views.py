@@ -220,6 +220,13 @@ def form_ensembles(request):
 
 
 def form_employees(request): #virtualmachine44
+    EmployeeJobFormSet = inlineformset_factory(
+        Employee, EmployeeJob,
+        form=EmployeeJobForm,
+        extra=1
+        # can_delete=True
+    )
+
     if request.method == 'POST':
         print("POST DATA:", request.POST)
 
@@ -232,7 +239,7 @@ def form_employees(request): #virtualmachine44
             job_formset.instance = employee  # Assign employee to job formset
             job_formset.save()  # Save EmployeeJob instances
 
-            return redirect('employee_list')  # Redirect after saving
+            return redirect('list_employees')  # Redirect after saving
         else:
             print("Form Errors:", employee_form.errors)
             print("Job Formset Errors:", job_formset.errors)
@@ -457,3 +464,47 @@ def edit_ensemble(request, ensemble_id):
         form = EnsembleForm(instance=ensemble)
         
     return render(request, 'archive_app/form_ensemble.html', {'form': form, 'ensemble': ensemble})
+
+
+def edit_employee(request, id):
+    EmployeeJobFormSet = inlineformset_factory(
+        Employee, EmployeeJob,
+        form=EmployeeJobForm,
+        extra=0,
+        can_delete=True
+    )
+
+    employee = get_object_or_404(Employee, id=id)
+    if request.method == 'POST':
+        employee_form = EmployeeForm(request.POST, instance=employee)
+        job_formset = EmployeeJobFormSet(request.POST, instance=employee)
+
+        if employee_form.is_valid() and job_formset.is_valid():
+            print("POST Data:", request.POST)
+            # for job_form in job_formset.deleted_forms:
+            #     if job_form.instance.pk:
+            #         job_form.instance.delete()
+            job_formset.save()  # Save EmployeeJob instances
+            employee_form.save()
+
+            return redirect('list_employees')  # Redirect after saving
+        else:
+            print("Form Errors:", employee_form.errors)
+            print("Job Formset Errors:", job_formset.errors)
+    else:
+        employee_form = EmployeeForm(instance=employee)
+        job_formset = EmployeeJobFormSet(instance=employee)
+
+    return render(request, 'archive_app/form_employee.html', {
+        'employee_form': employee_form,
+        'job_formset': job_formset,
+        'employee': employee
+    })
+
+
+def edit_play(request):
+    return None
+
+
+def edit_repeat(request):
+    return None

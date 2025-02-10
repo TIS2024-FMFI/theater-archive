@@ -23,16 +23,17 @@ class EmployeeForm(forms.ModelForm):
 
     class Meta:
         model = Employee
-        fields = [
-            'ensemble', 'employee_type', 'genre_type', 'first_name', 'last_name',
-            'date_of_birth', 'date_of_death', 'place_of_birth', 'place_of_death',
-            'description', 'publicity'
-        ]
+        fields = "__all__"
         widgets = {
             'date_of_birth': forms.DateInput(attrs={'type': 'date'}),
             'date_of_death': forms.DateInput(attrs={'type': 'date'}),
             'description': forms.Textarea(attrs={'rows': 4}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super(EmployeeForm, self).__init__(*args, **kwargs)
+        self.fields['date_of_death'].required = False
+        self.fields['place_of_death'].required = False
 
 
 class EmployeeJobForm(forms.ModelForm):
@@ -72,6 +73,10 @@ class EmployeeJobForm(forms.ModelForm):
 
         return cleaned_data
 
+    def __init__(self, *args, **kwargs):
+        super(EmployeeJobForm, self).__init__(*args, **kwargs)
+        self.fields['date_end'].required = False
+
 
 class PlayForm(forms.ModelForm):
     genre_type = forms.ModelChoiceField(
@@ -94,13 +99,6 @@ class PlayForm(forms.ModelForm):
         }
 
 
-EmployeeJobFormSet = inlineformset_factory(
-    Employee, EmployeeJob,
-    form=EmployeeJobForm,
-    extra=1,
-    # can_delete=True
-)
-
 class EnsembleForm(forms.ModelForm): #vm44
     class Meta:
         model = Ensemble
@@ -108,4 +106,28 @@ class EnsembleForm(forms.ModelForm): #vm44
         widgets = {
             'foundation_date': forms.DateInput(attrs={'type': 'date'}),
             'dissolution_date': forms.DateInput(attrs={'type': 'date'}),
+        }
+
+
+class RepeatForm(forms.ModelForm):
+    class Meta:
+        model = Repeat
+        fields = '__all__'
+        widgets = {
+            'date': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
+            'publicity': forms.CheckboxInput(attrs={'class': 'form-check-input'}),  # Checkbox styling
+            'play': forms.Select(attrs={'class': 'form-select'}),  # Dropdown styling
+            'room': forms.Select(attrs={'class': 'form-select'}),
+            'repeat_type': forms.Select(attrs={'class': 'form-select'}),
+            'ensemble': forms.Select(attrs={'class': 'form-select'}),
+        }
+
+
+class RepeatPerformerForm(forms.ModelForm):
+    class Meta:
+        model = RepeatPerformer
+        fields = ['repeat', 'employee_job']
+        widgets = {
+            'repeat': forms.Select(attrs={'class': 'form-select'}),  # Dropdown styling
+            'employee_job': forms.Select(attrs={'class': 'form-select'}),
         }
