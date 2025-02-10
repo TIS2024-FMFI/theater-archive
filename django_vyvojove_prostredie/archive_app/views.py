@@ -466,6 +466,26 @@ def edit_ensemble(request, ensemble_id):
     return render(request, 'archive_app/form_ensemble.html', {'form': form, 'ensemble': ensemble})
 
 
+def copy_ensemble(request, ensemble_id):
+    original_ensemble = get_object_or_404(Ensemble, id=ensemble_id)
+    
+    if request.method == "POST":
+        form = EnsembleForm(request.POST)
+        if form.is_valid():
+            new_ensemble = form.save(commit=False)
+            if new_ensemble.name == original_ensemble.name:
+                form.add_error('name', 'The name must be different from the original ensemble.')
+            elif Ensemble.objects.filter(name=new_ensemble.name).exists():
+                form.add_error('name', 'An ensemble with this name already exists.')
+            else:
+                new_ensemble.save()
+                return redirect('get_ensemble', id=new_ensemble.id)
+    else:
+        form = EnsembleForm(instance=original_ensemble)
+        form.initial['name'] = ''  # Clear the name field to force the user to enter a new name
+    
+    return render(request, 'archive_app/form_ensemble.html', {'form': form, 'ensemble': original_ensemble})
+    
 def edit_employee(request, id):
     EmployeeJobFormSet = inlineformset_factory(
         Employee, EmployeeJob,
