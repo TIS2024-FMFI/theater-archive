@@ -1,12 +1,6 @@
 from django.contrib import admin
-from .models import Ensemble, GenreType, Play, Document, EmployeeType, Employee, EmployeeJob, Room, Repeat
+from .models import *
+from django.apps import apps
 
-admin.site.register(Ensemble)
-admin.site.register(GenreType)
-admin.site.register(Play)
-admin.site.register(Document)
-admin.site.register(EmployeeType)
-admin.site.register(Employee)
-admin.site.register(EmployeeJob)
-admin.site.register(Room)
-admin.site.register(Repeat)
+for model in apps.get_app_config('archive_app').models.values():
+    admin.site.register(model)

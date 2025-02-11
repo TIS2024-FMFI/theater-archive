@@ -4,42 +4,43 @@
 <section class="content">
     <link rel="stylesheet" href="{%  static 'archive_app/form_concerts_and_events.css' %}">
     <div class="form-container">
-        <h2>Nové divadelné predstavenie</h2>
+
+        <h2>{% if play.id %}Upraviť{% else %}Pridať{% endif %} divadelné predstavenie</h2>
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
 
             <div class="form-group">
                 <label for="title">Titul:</label>
-                <input id="title" name="title" type="text" placeholder="Titul" required>
+                <input id="title" name="title" type="text" placeholder="Titul" required {% if play.id %} value="{{ form.title.value }}" {% endif %}>
 {#                <label for="subtitle">Podtitul:</label>#}
-                <input type="text" id="subtitle" placeholder="Podtitul">
+                <input type="text" id="subtitle" placeholder="Podtitul" {% if play.subtitle %} value="{{ form.subtitle.value }}" {% endif %}>
             </div>
 
             <div class="form-group">
                 <label for="author-name">Autor:</label>
-                <input type="text" name="author_first_name" placeholder="Meno">
-                <input type="text" name="author_last_name" placeholder="Priezvisko">
+                <input type="text" name="author_first_name" placeholder="Meno" {% if play.id %} value="{{ form.author_first_name.value }}" {% endif %}>
+                <input type="text" name="author_last_name" placeholder="Priezvisko" {% if play.id %} value="{{ form.author_last_name.value }}" {% endif %}>
             </div>
 
             <div class="form-group">
                 <label for="ensemble">Súbor:</label>
                 <select id="ensemble" name="ensemble" required>
                     {% for e in ensembles %}
-                        <option value="{{ e.id }}"> {{ e.name }}  </option>
+                        <option value="{{ e.id }}" {% if play.ensembles == e %}selected{% endif %}> {{ e.name }}  </option>
                     {% endfor %}
                 </select>
             </div>
 
             <div class="form-group">
                 <label for="description">Popis:</label>
-                <textarea id="description" name="description" rows="5" placeholder="Sem píšte popis..."></textarea>
+                <textarea id="description" name="description" rows="5" placeholder="Sem píšte popis...">{% if play.id %}{{ form.description.value }}{% endif %}</textarea>
             </div>
 
             <div class="form-group">
                 <label for="genre">Žáner:</label>
                 <select id="genre_type" name="genre_type">
                     {% for g in genres %}
-                        <option value="{{ g.id }}"> {{ g.name }}  </option>
+                        <option value="{{ g.id }}" {% if play.genre_type == g %}selected{% endif %}> {{ g.name }}  </option>
                     {% endfor %}
                 </select>
             </div>
@@ -68,7 +69,7 @@
 
             <div class="form-actions">
                 <label for="publish" class="publish">
-                    <input type="checkbox" name="publicity"> Zverejniť
+                    <input type="checkbox" name="publicity" {% if play.publicity == True %} checked {% endif %}> Zverejniť
                 </label>
                 <button type="submit" class="submit">Uložiť</button>
             </div>

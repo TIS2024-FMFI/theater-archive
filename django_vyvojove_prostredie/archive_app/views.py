@@ -200,8 +200,45 @@ def form_plays(request):
     })
 
 def form_repeats(request, id):
+    RepeatPerformerFormSet = inlineformset_factory(
+        Repeat, RepeatPerformer,
+        form=RepeatPerformerForm,
+        extra=1,  # Allow adding at least one performer
+        can_delete=True  # Allow deleting performers
+    )
+
     play = get_object_or_404(Play, pk=id)
-    return render(request,'archive_app/form_repeat.html', {'play':play})
+
+    if request.method == 'POST':
+        print("POST data:", request.POST)
+        repeat_form = RepeatForm(request.POST)
+        performer_formset = RepeatPerformerFormSet(request.POST)
+
+
+        if repeat_form.is_valid() and performer_formset.is_valid():
+            repeat = repeat_form.save(commit=False)
+            repeat.play = play
+            repeat.save()
+
+            performers = performer_formset.save(commit=False)
+            for performer in performers:
+                performer.repeat = repeat
+                performer.save()  # This automatically assigns EmployeeJob
+
+            return redirect('get_repeat', id_play=play.id, id_repeat=repeat.id)  # Redirect after saving
+
+        else:
+            print("Repeat Errors:", repeat_form.errors)
+            print("Performer Formset Errors:", performer_formset.errors)
+    else:
+        repeat_form = RepeatForm()
+        performer_formset = RepeatPerformerFormSet()
+
+    return render(request, 'archive_app/form_repeat.html', {
+        'play': play,
+        'repeat_form': repeat_form,
+        'performer_formset': performer_formset
+    })
 
 def form_concerts_and_events(request):
     return render(request, 'archive_app/form_concerts_and_events.html')
@@ -255,7 +292,10 @@ def form_employees(request): #virtualmachine44
 
 def get_play(request, id):
     play = get_object_or_404(Play, pk=id)
-    repeats = Repeat.objects.filter(play=play)
+    if not request.user.is_authenticated:
+        repeats = Repeat.objects.filter(play=play, publicity=True)
+    else:
+        repeats = Repeat.objects.filter(play=play)
 
     # production = PlayPerformer.objects.filter(play=play)
     qs_roles = PlayPerformer.objects.filter(play=play)
@@ -274,7 +314,8 @@ def get_play(request, id):
         employee = rp.employee_job.employee
         if job not in performers:
             performers[job] = []
-        performers[job].append(employee)
+        if employee not in performers[job]:
+            performers[job].append(employee)
 
     return render(request, 'archive_app/get_play.html', {
         'play': play, 'repeats':repeats, 'production':production, 'performers':performers
@@ -291,7 +332,8 @@ def get_repeat(request, id_play, id_repeat):
         employee = rp.employee_job.employee
         if job not in performers:
             performers[job] = []
-        performers[job].append(employee)
+        if employee not in performers[job]:
+            performers[job].append(employee)
 
     return render(request, 'archive_app/get_repeat.html', {
         'play': play, 'repeat':repeat, 'performers':performers
@@ -501,10 +543,6 @@ def edit_employee(request, id):
 
         if employee_form.is_valid() and job_formset.is_valid():
             print("POST Data:", request.POST)
-            # for job_form in job_formset.deleted_forms:
-            #     if job_form.instance.pk:
-            #         job_form.instance.delete()
-            job_formset.save()  # Save EmployeeJob instances
             employee_form.save()
 
             return redirect('list_employees')  # Redirect after saving
@@ -522,9 +560,68 @@ def edit_employee(request, id):
     })
 
 
-def edit_play(request):
-    return None
+def edit_play(request, id):
+    genres = GenreType.objects.all()
+    ensembles = Ensemble.objects.all()
+    play = get_object_or_404(Play, id=id)
+
+    if request.method == 'POST':
+        form = PlayForm(request.POST, instance=play)
+        if form.is_valid():
+            form.save()
+            return redirect('list_plays')  # Redirect to a view that lists employees
+        else:
+            print(form.errors)
+    else:
+        form = PlayForm(instance=play)
+    return render(request, 'archive_app/form_play.html', {
+        'form': form, 'genres': genres, 'ensembles': ensembles, 'play':play
+    })
 
 
-def edit_repeat(request):
-    return None
+def edit_repeat(request, id_play, id_repeat):
+    RepeatPerformerFormSet = inlineformset_factory(
+        Repeat, RepeatPerformer,
+        form=RepeatPerformerForm,
+        extra=0,
+        can_delete=True
+    )
+
+    repeat = get_object_or_404(Repeat, id=id_repeat)
+    play = get_object_or_404(Play, pk=id_play)
+
+    if request.method == 'POST':
+        print("POST data:", request.POST)
+
+        repeat_form = RepeatForm(request.POST, instance=repeat)
+        performer_formset = RepeatPerformerFormSet(request.POST, instance=repeat)
+
+        if repeat_form.is_valid() and performer_formset.is_valid():
+            # repeat = repeat_form.save(commit=False)
+            # repeat.play = play
+            repeat.save()
+
+            # performers = performer_formset.save(commit=False)
+            for form in performer_formset:
+                if form.cleaned_data.get("DELETE", False):
+                    if form.instance.pk:
+                        form.instance.delete()
+                else:
+                    form.save()
+
+            return redirect('get_repeat', id_play=play.id, id_repeat=repeat.id)  # Redirect after saving
+
+        else:
+            print("Repeat Errors:", repeat_form.errors)
+            print("Performer Formset Errors:", performer_formset.errors)
+    else:
+
+        repeat_form = RepeatForm(instance=repeat)
+        performer_formset = RepeatPerformerFormSet(instance=repeat)
+
+    return render(request, 'archive_app/form_repeat.html', {
+        'play': play,
+        'repeat': repeat,
+        'repeat_form': repeat_form,
+        'performer_formset': performer_formset
+    })
