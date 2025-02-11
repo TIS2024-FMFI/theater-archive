@@ -4,44 +4,68 @@
 <section class="content">
     <link rel="stylesheet" href="{%  static 'archive_app/form_concerts_and_events.css' %}">
     <div class="form-container">
-       <h2>Nové divadelné predstavenie</h2>
-        <form>
+
+        <h2>{% if repeat.id %}Upraviť{% else %}Pridať{% endif %} konkrétne predstavenie</h2>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
 
             <!-- Event Type, Date, and Location -->
             <div class="form-group">
                 <label for="event-type">Typ podujatia:</label>
-                <select id="event-type">
-                    <option value="repriza">Repríza</option>
+                <select id="event-type" name="repeat_type">
+                    {% for r in repeat_form.repeat_type.field.queryset %}
+                        <option value="{{ r.id }}" {% if repeat.repeat_type == r %}selected{% endif %}>{{ r.name }}</option>
+                    {% endfor %}
+{#                    <option value="repriza">Repríza</option>#}
                 </select>
             </div>
 
             <div class="form-group">
                 <label for="event-date">Dátum a čas:</label>
-                <input type="datetime-local" id="event-date" value="2000-01-01T00:00">
+                <input type="datetime-local" name="date" id="event-date" {% if repeat.id %} value="{{ repeat_form.date.value|date:'Y-m-d\TH:i' }}" {% endif %}>
             </div>
 
             <div class="form-group">
                 <label for="venue">Miesto:</label>
-                <select id="venue">
-                    <option value="snd">Sála činohry SND</option>
+                <select id="venue" name="room">
+                    <option value="">Iná miestmosť</option>
+                    {% for r in repeat_form.room.field.queryset %}
+                        <option value="{{ r.id }}" {% if repeat.room == r %}selected{% endif %}>{{ r.name }}</option>
+                    {% endfor %}
                 </select>
-                <label for="other-venue">Iné miesto:</label>
-                <input type="text" id="other-venue" placeholder="Iné miesto">
+                <input type="text" id="other-venue" placeholder="Zadajte inú miestnosť" name="new_room" style="display: block">
+            </div>
+
+            <div class="form-group">
+                <label for="file">Súbor:</label>
+                <select id="file" name="ensemble">
+                   {% for e in repeat_form.ensemble.field.queryset %}
+                        <option value="{{ e.id }}" {% if repeat.ensemble == e %}selected{% endif %}>{{ e.name }}</option>
+                    {% endfor %}
+                </select>
             </div>
 
             <!-- Cast Section -->
             <h3>Obsadenie</h3>
             <div class="role_container">
-                <div id="role_entry">
+
+                {{ performer_formset.management_form }}
+                {% for form in performer_formset %}
+                <div id="role_entry" class="role_entry">
+
+                    {{ form.id.as_hidden }}
                     <div class="form-group">
                         <label for="role">Postava:</label>
-                        <input type="text" id="role" placeholder="Postava">
+                        <input type="text" id="role" placeholder="Postava" name="{{ form.job_name.html_name }}" value="{{ form.instance.employee_job.job|default:'' }}" class="form-control">
                         <button type="button" class="btn remove-role">&#10006;</button>
+                        <input type="checkbox" name="{{ form.DELETE.html_name }}" class="delete-checkbox" style="display: none;">
                     </div>
 
                     <div class="form-group actor">
                         <label for="actor">Herec / Herečka:</label>
-                        <input type="text" id="actor" placeholder="Umelec">
+                        <input type="text" id="actor" class="actor" placeholder="Umelec" name="{{ form.employee.html_name }}" value="{{ form.instance.employee_job.employee|default:'' }}">
+                        <input type="checkbox" name="{{ form.DELETE.html_name }}" class="delete-checkbox" style="display: none;">
                         <button type="button" class="btn" style="visibility: hidden;">&#10006;</button>
                     </div>
 
@@ -51,6 +75,8 @@
                     </div>
 
                 </div>
+
+                {% endfor %}
             </div>
             <button type="button" class="add-btn role" id="add_role">&#10010; pridať postavu</button>
 
@@ -79,7 +105,7 @@
             <!-- Publish and Submit -->
             <div class="form-actions">
                 <label for="publish" class="publish">
-                    <input type="checkbox" id="publish"> Zverejniť
+                    <input type="checkbox" id="publish" name="publicity" {% if employee_form.publicity.value == True %} checked {% endif %}> Zverejniť
                 </label>
                 <button type="submit" class="submit">Uložiť</button>
             </div>
@@ -110,104 +136,156 @@
         });
     });
 
-    // Remove Button Functionality
-    document.querySelectorAll('.remove-btn').forEach((btn) => {
-        btn.addEventListener('click', function () {
-            this.previousElementSibling.value = ""; // Clear input field
-        });
-    });
-
-    // Add Actor Button
-    function addActorButton(entry) {
-        let actorSection = document.createElement("div");
-        actorSection.classList.add("form-group");
-        actorSection.classList.add("actor");
-
-        let label = document.createElement("label");
-
-        let newActor = document.createElement("input");
-        newActor.type = "text";
-        newActor.placeholder = "Umelec";
-
-        let removeBtn = document.createElement("button");
-        removeBtn.type = "button";
-        removeBtn.classList.add("remove-btn");
-        removeBtn.textContent = "✖";
-        removeBtn.className = "btn";
-
-        removeBtn.addEventListener("click", function () {
-            actorSection.remove();
-        });
-
-        actorSection.appendChild(label);
-        actorSection.appendChild(newActor);
-        actorSection.appendChild(removeBtn);
-
-        entry.querySelector(".actor").after(actorSection);
-    }
-     document.querySelector(".add-actor").addEventListener("click", function () {
-         addActorButton(document);
-     });
-
-    // Add Actor Button
-    document.querySelector('.role').addEventListener('click', function () {
+    document.addEventListener("DOMContentLoaded", function () {
         let jobContainer = document.querySelector(".role_container");
-        {#let addButton = document.querySelector('.role');#}
-        {#let totalForms = document.querySelector("#id_repeatperformer_set-TOTAL_FORMS");#}
-        {#totalForms.value = document.querySelectorAll("#role_container > .form-row").length;#}
-        console.log("AAAAAAAAAAA");
+        let addButton = document.querySelector('.role');
+        let totalForms = document.querySelector("#id_repeatperformer_set-TOTAL_FORMS");
 
-        {#let formCount = parseInt(totalForms.value);#}
-        let totalForms = 2;
-        let template = document.getElementById("role_entry");
-        console.log(template);
-        if (!template) {
-            console.error("Error: 'role_entry' element not found.");
-            return;
-        }
+        totalForms.value = document.querySelectorAll(".role_container > .role_entry").length;
 
-        let newEntry = template.cloneNode(true);
-        newEntry.removeAttribute("id"); // Remove duplicate ID
-
-        let actors = newEntry.querySelectorAll(".form-group.actor");
-        console.log(actors);
-        actors.forEach((actor, index) => {
-            if (index > 0) {
-                actor.remove();
-            }
-        });
-
-        // Update form field names for Django formset
-        {#newEntry.innerHTML = newEntry.innerHTML.replace(/-\d+-/g, `-${formCount}-`);#}
-
-        // Clear input values
-        newEntry.querySelectorAll("input, input").forEach(input => {
-            if (input.type === "text")
-                input.value = "";
-        });
-
-        let removeButton = newEntry.querySelector(".remove-role");
-        if (removeButton) {
-            removeButton.addEventListener("click", function () {
-                if (totalForms > 1) {
-                    console.log(this.parentElement);
-                    this.parentElement.parentElement.remove(); // Remove the entire job entry
-                    {#totalForms.value = document.querySelectorAll("#role_container > div").length;#}
+        function attachListenersToExistingForms() {
+            document.querySelectorAll(".role_entry").forEach((entry, index) => {
+                let jobInput = entry.querySelector("input[name*='job_name']");
+                if (jobInput && jobInput.value.trim() !== "") {
+                    jobInput.value = jobInput.value.trim(); // Ensure value remains
                 }
+
+                let actorInputs = entry.querySelectorAll("input[name*='employee']");
+                actorInputs.forEach((actorInput) => {
+                    if (actorInput.value.trim() !== "") {
+                        actorInput.value = actorInput.value.trim();
+                    }
+                });
+
+                let removeButton = entry.querySelector(".remove-role");
+                let deleteField = entry.querySelector("input[name*='DELETE']");
+                if (removeButton) {
+                    removeButton.addEventListener("click", function () {
+                        if ( document.querySelectorAll(".role_container > .role_entry:not([style*='display: none'])").length > 1) {
+                            deleteField.checked = true;
+                            console.log(deleteField.name)
+                            {#this.closest(".role_entry").remove();#}
+                            this.closest(".role_entry").style.display = "none";
+                            totalForms.value = document.querySelectorAll(".role_container > .role_entry").length;
+                        } else {
+                            alert("At least one role must remain.");
+                        }
+                    });
+                }
+
             });
-        } else {
-            console.error("Error: 'remove-job' button not found inside new entry.");
+        }
+        attachListenersToExistingForms();
+
+        // ✅ Function to Add an Actor (New Formset Instance)
+        function addActorButton(entry) {
+            let formCount = parseInt(totalForms.value);
+            let actorSection = document.createElement("div");
+            actorSection.classList.add("form-group", "actor");
+
+            let label = document.createElement("label");
+
+            let newActor = document.createElement("input");
+            newActor.type = "text";
+            newActor.placeholder = "Umelec";
+
+            let jobInput = entry.querySelector("input[name*='job_name']");
+            let jobName = jobInput ? jobInput.value : "";
+            console.log(jobInput)
+
+            let hiddenJobInput = document.createElement("input");
+            hiddenJobInput.type = "hidden";
+            hiddenJobInput.name = `repeatperformer_set-${formCount}-job_name`;
+            hiddenJobInput.value = jobName;
+
+            newActor.name = `repeatperformer_set-${formCount}-employee`;
+
+            let removeBtn = document.createElement("button");
+            removeBtn.type = "button";
+            removeBtn.classList.add("remove-btn", "btn");
+            removeBtn.textContent = "✖";
+
+            removeBtn.addEventListener("click", function () {
+                actorSection.remove();
+                totalForms.value = document.querySelectorAll(".role_container .actor input").length;
+            });
+
+            actorSection.appendChild(label);
+            actorSection.appendChild(newActor);
+            actorSection.appendChild(hiddenJobInput);
+            actorSection.appendChild(removeBtn);
+
+            entry.querySelector(".actor").after(actorSection);
+            totalForms.value = formCount + 1; // ✅ Increase formset count
         }
 
-        newEntry.querySelector(".add-actor").addEventListener("click", function () {
-             addActorButton(newEntry);
+        // ✅ Add Actor Button Event Listener (Per Role)
+        document.querySelectorAll(".add-actor").forEach(button => {
+            button.addEventListener("click", function () {
+                addActorButton(this.closest(".role_entry"));
+            });
         });
 
-        // Append the new job entry inside the job container
-        jobContainer.appendChild(newEntry);
-        {#totalForms.value = formCount + 1;#}
+
+        // ✅ Function to Add a New Role (RepeatPerformer)
+        if (addButton) {
+            addButton.addEventListener("click", function () {
+                let formCount = parseInt(totalForms.value);
+                let template = document.getElementById("role_entry");
+
+                if (!template) {
+                    console.error("Error: 'role_entry' element not found.");
+                    return;
+                }
+
+                let newEntry = template.cloneNode(true);
+                newEntry.removeAttribute("id"); // Remove duplicate ID
+
+                let actors = newEntry.querySelectorAll(".form-group.actor");
+                actors.forEach((actor, index) => {
+                    if (index > 0) {
+                        actor.remove();
+                    }
+                });
+
+                // ✅ Update form field names for Django formset
+                newEntry.innerHTML = newEntry.innerHTML.replace(/-\d+-/g, `-${formCount}-`);
+
+                // ✅ Clear input values (Only for new roles)
+                newEntry.querySelectorAll("input").forEach(input => {
+                    if (input.type === "text") {
+                        input.value = "";
+                    }
+                });
+
+                let removeButton = newEntry.querySelector(".remove-role");
+                let deleteField = newEntry.querySelector("input[name*='DELETE']");
+                console.log("264: "+deleteField)
+                if (removeButton) {
+                    removeButton.addEventListener("click", function () {
+                        if (totalForms.value > 1) {
+                            deleteField.checked = true;
+                            {#this.closest(".role_entry").remove();#}
+                            newEntry.style.display = "none";
+                            totalForms.value = document.querySelectorAll(".role_container > .role_entry").length;
+                        }
+                    });
+                }
+
+                newEntry.querySelector(".add-actor").addEventListener("click", function () {
+                    addActorButton(newEntry);
+                });
+
+                // ✅ Append the new job entry inside the job container
+                jobContainer.appendChild(newEntry);
+                totalForms.value = formCount + 1;
+            });
+        }
 
 
     });
+
+
+
 </script>
 {% endblock %}

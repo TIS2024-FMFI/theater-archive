@@ -7,10 +7,11 @@
     <hr>
     {% if request.user.is_authenticated and request.user.is_staff %}
     <div class="action-buttons" >
-        <button class="edit">Upraviť</button>
+        <a href="{% url 'edit_play' play.id %}" class="btn btn-primary">Upraviť</a>
         <button class="copy">Vytvoriť kópiu</button>
     </div>
     {% endif %}
+
     <div class="container">
         <div class="left-section">
             <p><em>{{ play.genre_type }}</em></p>
@@ -65,6 +66,7 @@
                         {% for actor in actors %}
                             <br> &emsp;<a href="{% url 'get_employee' actor.id %}" class="item">{{ actor.first_name }} {{ actor.last_name }} </a>
                         {% endfor %}
+                        <br> <br>
                     {% endfor %}
                 </div>
                 <!-- ostatne obsadenie picoviny pridat SEM -->
