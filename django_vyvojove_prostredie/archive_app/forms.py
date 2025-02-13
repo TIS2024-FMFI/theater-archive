@@ -211,3 +211,39 @@ class RepeatPerformerForm(forms.ModelForm):
 
         return repeat_performer
 
+class ConcertForm(forms.ModelForm):
+    concert_type = forms.ModelChoiceField(
+        queryset=ConcertType.objects.all(),
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    class Meta:
+        model = Concert
+        fields = "__all__"
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Názov koncertu / podujatia'}),
+            'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 5, 'placeholder': 'Sem píšte popis...'}),
+        }
+
+class ConcertPerformerForm(forms.ModelForm):
+    employee = forms.ModelChoiceField(
+        queryset=Employee.objects.all(),
+        widget=forms.Select(attrs={'class': 'form-control', 'autocomplete': 'off'})
+    )
+    job = forms.ModelChoiceField(
+        queryset=Job.objects.filter(play_character=False),
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    class Meta:
+        model = ConcertPerformer
+        fields = ['employee', 'job']
+
+
+class DocumentForm(forms.ModelForm):
+    file = forms.FileField(required=False)
+
+    class Meta:
+        model = Document
+        fields = ['file']

@@ -164,7 +164,7 @@
                         if ( document.querySelectorAll(".role_container > .role_entry:not([style*='display: none'])").length > 1) {
                             deleteField.checked = true;
                             console.log(deleteField.name)
-                            {#this.closest(".role_entry").remove();#}
+                            //{#this.closest(".role_entry").remove();#}
                             this.closest(".role_entry").style.display = "none";
                             totalForms.value = document.querySelectorAll(".role_container > .role_entry").length;
                         } else {
@@ -265,7 +265,7 @@
                     removeButton.addEventListener("click", function () {
                         if (totalForms.value > 1) {
                             deleteField.checked = true;
-                            {#this.closest(".role_entry").remove();#}
+                            //{#this.closest(".role_entry").remove();#}
                             newEntry.style.display = "none";
                             totalForms.value = document.querySelectorAll(".role_container > .role_entry").length;
                         }

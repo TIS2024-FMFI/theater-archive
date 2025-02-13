@@ -42,10 +42,10 @@ class Play(models.Model):
 
 
 class Document(models.Model):
-    document_path = models.CharField(max_length=100)
+    document_path = models.FileField(upload_to='documents/')
 
     def __str__(self):
-        return self.document_path
+        return self.file.name
 
 
 class PlayDocument(models.Model):

@@ -13,6 +13,7 @@
         <button class="edit">Upraviť</button>
         <button class="copy">Vytvoriť kópiu</button>
     </div>
+    
     {% endif %}
     <div class="container">
         <div class="left-section">
@@ -21,8 +22,6 @@
 
             <label class="label">Popis:</label>
             <div class="content">{{ concert.description }}</div>
-
-
         </div>
 
         <div class="right-section">
@@ -37,6 +36,12 @@
                     {% endfor %}
                 </div>
                 <!-- ostatne obsadenie picoviny pridat SEM -->
+            </div>
+            <h2>Program</h2>
+            <div class="program-list">
+                {% for concert_document in program_documents %}
+                    <a href="{{ concert_document.document.file.url }}" download>{{ concert_document.document.file.name }}</a>
+                {% endfor %}
             </div>
         </div>
     </div>
