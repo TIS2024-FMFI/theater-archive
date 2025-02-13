@@ -45,7 +45,7 @@ class Document(models.Model):
     document_path = models.FileField(upload_to='documents/')
 
     def __str__(self):
-        return self.file.name
+        return self.document_path.name
 
 
 class PlayDocument(models.Model):
