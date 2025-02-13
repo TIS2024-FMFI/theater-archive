@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
             name='Document',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('file', models.FileField(upload_to='documents/')),
+                ('document_path', models.FileField(upload_to='documents/')),
             ],
         ),
         migrations.CreateModel(
