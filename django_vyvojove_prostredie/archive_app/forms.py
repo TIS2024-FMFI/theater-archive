@@ -226,19 +226,30 @@ class ConcertForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 5, 'placeholder': 'Sem píšte popis...'}),
         }
 
-class ConcertPerformerForm(forms.ModelForm):
+class ConcertStagingTeamForm(forms.ModelForm): #inscenacny tim
     employee = forms.ModelChoiceField(
         queryset=Employee.objects.all(),
         widget=forms.Select(attrs={'class': 'form-control', 'autocomplete': 'off'})
     )
-    job = forms.ModelChoiceField(
-        queryset=Job.objects.filter(play_character=False),
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
 
     class Meta:
         model = ConcertPerformer
-        fields = ['employee', 'job']
+        fields = ['employee']
+
+
+# class ConcertPerformerForm(forms.ModelForm): #ucinkujuci
+#     employee = forms.ModelChoiceField(
+#         queryset=Employee.objects.all(),
+#         widget=forms.Select(attrs={'class': 'form-control', 'autocomplete': 'off'})
+#     )
+#     job = forms.ModelChoiceField(
+#         queryset=Job.objects.filter(play_character=False),
+#         widget=forms.Select(attrs={'class': 'form-control'})
+#     )
+
+#     class Meta:
+#         model = ConcertPerformer
+#         fields = ['employee', 'job']
 
 
 class DocumentForm(forms.ModelForm):

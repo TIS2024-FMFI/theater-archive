@@ -4,7 +4,7 @@
 <section class="content">
     <link rel="stylesheet" href="{% static 'archive_app/form_concerts_and_events.css' %}">
     <div class="form-container">
-        <h2>{% if concert.id %}Upraviť{% else %}Pridať{% endif %} koncert/podujatie</h2>
+        <h2>{% if concert and concert.id %}Upraviť{% else %}Pridať{% endif %} koncert/podujatie</h2>
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             
@@ -49,7 +49,38 @@
                 {{ dramaturgy_form.employee }}
             </div>
 
-             <!-- Účinkujúci (Performers) -->
+            <button type="submit" class="btn btn-primary">Uložiť</button>
+        </form>
+    </div>
+</section>
+{% endblock %}
+
+
+
+
+
+
+
+
+<!--             
+            Inscenačný tím (Production Team)
+            <h3>Inscenačný tím :</h3>
+            <div class="form-group">
+                <label for="director">Réžia :</label>
+                {{ director_form.employee }}
+            </div>
+
+            <div class="form-group">
+                <label for="scene">Scéna :</label>
+                {{ scene_form.employee }}
+            </div>
+
+            <div class="form-group">
+                <label for="dramaturgy">Dramaturg :</label>
+                {{ dramaturgy_form.employee }}
+            </div>
+
+             Účinkujúci (Performers)
              <h3>Účinkujúci :</h3>
              <div id="performer-container">
                  {% for performer_form in performer_forms %}
@@ -70,7 +101,7 @@
              <input type="hidden" name="performer_count" id="performer_count" value="{{ performer_forms|length }}">
              
  
-             <!-- Prílohy (Attachments) -->
+             Prílohy (Attachments)
             <h3>Prílohy:</h3>
             <div class="form-group">
                 <label for="program">Program:</label>
@@ -85,6 +116,7 @@
         </form>
     </div>
 </section>
+
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -128,5 +160,7 @@
             }
         });
     });
-</script>
-{% endblock %}
+</script> -->
+
+
+

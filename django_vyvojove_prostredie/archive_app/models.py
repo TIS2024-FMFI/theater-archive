@@ -84,7 +84,6 @@ class Employee(models.Model):
     ensemble = models.ForeignKey('Ensemble', on_delete=models.SET_NULL, null=True)
     employee_type = models.ForeignKey('EmployeeType', on_delete=models.SET_NULL, null=True)
     genre_type = models.ForeignKey('GenreType', on_delete=models.SET_NULL, null=True) #vm44
-    #document = models.ForeignKey('EmployeeDocument', on_delete=models.SET_NULL, null=True, blank=True) #nepotrebujeme
 
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)

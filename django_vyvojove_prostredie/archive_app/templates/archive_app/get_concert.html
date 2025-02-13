@@ -10,8 +10,8 @@
     <hr>
     {% if request.user.is_authenticated and request.user.is_staff %}
     <div class="action-buttons" >
-        <button class="edit">Upraviť</button>
-        <button class="copy">Vytvoriť kópiu</button>
+        <a href="{% url 'edit_concert' concert.id %}" class="btn btn-primary edit">Upraviť</a>
+        <a href="{% url 'copy_concert' concert.id %}" class="btn btn-secondary copy">Vytvoriť kópiu</a>
     </div>
     
     {% endif %}

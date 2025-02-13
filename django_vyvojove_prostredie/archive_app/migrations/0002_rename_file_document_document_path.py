@@ -10,9 +10,9 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RenameField(
-            model_name='document',
-            old_name='file',
-            new_name='document_path',
-        ),
+        # migrations.RenameField(
+        #     model_name='document',
+        #     old_name='file',
+        #     new_name='document_path',
+        # ),
     ]
