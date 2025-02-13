@@ -231,6 +231,7 @@ class ConcertStagingTeamForm(forms.ModelForm): #inscenacny tim
         queryset=Employee.objects.all(),
         widget=forms.Select(attrs={'class': 'form-control', 'autocomplete': 'off'})
     )
+    
 
     class Meta:
         model = ConcertPerformer

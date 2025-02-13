@@ -248,7 +248,7 @@ def form_concerts_and_events(request):
         dramaturgy_form = ConcertStagingTeamForm(request.POST, prefix='dramaturgy')
 
         if concert_form.is_valid() and director_form.is_valid() and scene_form.is_valid() and dramaturgy_form.is_valid():
-            concert_form.save()
+            concert = concert_form.save()
 
             director = director_form.save(commit=False)
             director.concert = concert
