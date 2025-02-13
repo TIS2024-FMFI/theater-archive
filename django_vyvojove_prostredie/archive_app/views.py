@@ -241,7 +241,48 @@ def form_repeats(request, id):
     })
 
 def form_concerts_and_events(request):
-    return render(request, 'archive_app/form_concerts_and_events.html')
+    if request.method == 'POST':
+        concert_form = ConcertForm(request.POST)
+        director_form = ConcertStagingTeamForm(request.POST, prefix='director')
+        scene_form = ConcertStagingTeamForm(request.POST, prefix='scene')
+        dramaturgy_form = ConcertStagingTeamForm(request.POST, prefix='dramaturgy')
+
+        if concert_form.is_valid() and director_form.is_valid() and scene_form.is_valid() and dramaturgy_form.is_valid():
+            concert = concert_form.save()
+
+            director = director_form.save(commit=False)
+            director.concert = concert
+            director.job = "Réžia"
+            director.save()
+
+            scene = scene_form.save(commit=False)
+            scene.concert = concert
+            scene.job = "Scéna"
+            scene.save()
+
+            dramaturgy = dramaturgy_form.save(commit=False)
+            dramaturgy.concert = concert
+            dramaturgy.job = "Dramaturg"
+            dramaturgy.save()
+
+            return redirect('list_concerts_and_events')  # Redirect to a list of concerts or another appropriate view
+        else:
+            print(concert_form.errors)  # Print form errors for debugging
+            print(director_form.errors)
+            print(scene_form.errors)
+            print(dramaturgy_form.errors)
+    else:
+        concert_form = ConcertForm()
+        director_form = ConcertStagingTeamForm(prefix='director')
+        scene_form = ConcertStagingTeamForm(prefix='scene')
+        dramaturgy_form = ConcertStagingTeamForm(prefix='dramaturgy')
+
+    return render(request, 'archive_app/form_concerts_and_events.html', {
+        'concert_form': concert_form,
+        'director_form': director_form,
+        'scene_form': scene_form,
+        'dramaturgy_form': dramaturgy_form,
+    })
 
 def form_ensembles(request):
     if request.method == "POST":
@@ -253,7 +294,6 @@ def form_ensembles(request):
         form = EnsembleForm()
     
     return render(request, 'archive_app/form_ensemble.html', {'form': form})
-    #return render(request,'archive_app/form_ensemble.html')
 
 
 def form_employees(request): #virtualmachine44
@@ -341,6 +381,8 @@ def get_repeat(request, id_play, id_repeat):
 
 def get_concert_or_event(request, id_concert):
     concert = get_object_or_404(Concert, pk=id_concert)
+    concert_documents = ConcertDocument.objects.filter(concert=concert)
+    #program_documents = concert_documents.filter(document__file__endswith='.pdf')
 
     qs = ConcertPerformer.objects.filter(concert=concert)
     production = dict()
@@ -352,7 +394,9 @@ def get_concert_or_event(request, id_concert):
         production[job].append(employee)
 
     return render(request, 'archive_app/get_concert.html', {
-        'concert': concert, 'production':production
+        'concert': concert,
+        'production':production,
+        #'program_documents': program_documents,
     })
 
 def get_ensemble(request, id):
@@ -625,3 +669,201 @@ def edit_repeat(request, id_play, id_repeat):
         'repeat_form': repeat_form,
         'performer_formset': performer_formset
     })
+
+def edit_concert(request, concert_id):
+    concert = get_object_or_404(Concert, id=concert_id)
+
+    # Fetch existing ConcertPerformer instances for the roles
+    director = ConcertPerformer.objects.filter(concert=concert, job="Réžia").first()
+    scene = ConcertPerformer.objects.filter(concert=concert, job="Scéna").first()
+    dramaturgy = ConcertPerformer.objects.filter(concert=concert, job="Dramaturg").first()
+    
+
+    if request.method == 'POST':
+        concert_form = ConcertForm(request.POST, instance=concert)
+        director_form = ConcertStagingTeamForm(request.POST, instance=director, prefix='director')
+        scene_form = ConcertStagingTeamForm(request.POST, instance=scene, prefix='scene')
+        dramaturgy_form = ConcertStagingTeamForm(request.POST, instance=dramaturgy, prefix='dramaturgy')
+
+        if concert_form.is_valid() and director_form.is_valid() and scene_form.is_valid() and dramaturgy_form.is_valid():
+            concert = concert_form.save()
+
+            director = director_form.save(commit=False)
+            director.concert = concert
+            director.job = "Réžia"
+            director.save()
+
+            scene = scene_form.save(commit=False)
+            scene.concert = concert
+            scene.job = "Scéna"
+            scene.save()
+
+            dramaturgy = dramaturgy_form.save(commit=False)
+            dramaturgy.concert = concert
+            dramaturgy.job = "Dramaturg"
+            dramaturgy.save()
+
+            return redirect('get_concert_or_event', id_concert=concert.id)
+        else:
+            print(concert_form.errors)  # Print form errors for debugging
+            print(director_form.errors)
+            print(scene_form.errors)
+            print(dramaturgy_form.errors)
+
+    else:
+        concert_form = ConcertForm(instance=concert)
+        director_form = ConcertStagingTeamForm(instance=director, prefix='director')
+        scene_form = ConcertStagingTeamForm(instance=scene, prefix='scene')
+        dramaturgy_form = ConcertStagingTeamForm(instance=dramaturgy, prefix='dramaturgy')
+
+    return render(request, 'archive_app/form_concerts_and_events.html', {
+        'concert_form': concert_form,
+        'director_form': director_form,
+        'scene_form': scene_form,
+        'dramaturgy_form': dramaturgy_form,
+        'concert': concert,
+    })
+
+def copy_concert(request, concert_id):
+    concert = get_object_or_404(Concert, id=concert_id)
+
+    director = ConcertPerformer.objects.filter(concert=concert, job="Réžia").first()
+    scene = ConcertPerformer.objects.filter(concert=concert, job="Scéna").first()
+    dramaturgy = ConcertPerformer.objects.filter(concert=concert, job="Dramaturg").first()
+
+    if request.method == 'POST':
+        concert_form = ConcertForm(request.POST)
+        director_form = ConcertStagingTeamForm(request.POST, instance=director, prefix='director')
+        scene_form = ConcertStagingTeamForm(request.POST, instance=scene, prefix='scene')
+        dramaturgy_form = ConcertStagingTeamForm(request.POST, instance=dramaturgy, prefix='dramaturgy')
+
+        if concert_form.is_valid() and director_form.is_valid() and scene_form.is_valid() and dramaturgy_form.is_valid():
+            new_concert = concert_form.save(commit=False)
+            new_concert.id = None  # Ensure a new entry is created
+            new_concert.save()
+
+            # Save director
+            director = director_form.save(commit=False)
+            director.concert = new_concert
+            director.job = "Réžia"
+            director.save()
+
+            # Save scene
+            scene = scene_form.save(commit=False)
+            scene.concert = new_concert
+            scene.job = "Scéna"
+            scene.save()
+
+            # Save dramaturgy
+            dramaturgy = dramaturgy_form.save(commit=False)
+            dramaturgy.concert = new_concert
+            dramaturgy.job = "Dramaturg"
+            dramaturgy.save()
+
+            return redirect('get_concert_or_event', id_concert=new_concert.id)  # Redirect to the new concert detail view after saving
+        else:
+            print(concert_form.errors)  # Print form errors for debugging
+            print(director_form.errors)
+            print(scene_form.errors)
+            print(dramaturgy_form.errors)
+
+    else:
+        concert_form = ConcertForm(instance=concert)
+        concert_form.fields['name'].initial = ''
+        director_form = ConcertStagingTeamForm(instance=director, prefix='director')
+        scene_form = ConcertStagingTeamForm(instance=scene, prefix='scene')
+        dramaturgy_form = ConcertStagingTeamForm(instance=dramaturgy, prefix='dramaturgy')
+
+    return render(request, 'archive_app/form_concerts_and_events.html', {
+        'concert_form': concert_form,
+        'director_form': director_form,
+        'scene_form': scene_form,
+        'dramaturgy_form': dramaturgy_form,
+        'concert': concert,
+        
+    })
+
+# def create_concert(request):
+#     if request.method == 'POST':
+#         concert_form = ConcertForm(request.POST)
+#         director_form = ConcertPerformerForm(request.POST, prefix='director')
+#         scene_form = ConcertPerformerForm(request.POST, prefix='scene')
+#         dramaturgy_form = ConcertPerformerForm(request.POST, prefix='dramaturgy')
+#         performer_forms = [ConcertPerformerForm(request.POST, prefix=str(i)) for i in range(0, int(request.POST['performer_count']))]
+#         document_form = DocumentForm(request.POST, request.FILES)
+#         performer_count = int(request.POST.get('performer_count', 1))
+
+#         if concert_form.is_valid() and director_form.is_valid() and scene_form.is_valid() and dramaturgy_form.is_valid() and all([pf.is_valid() for pf in performer_forms]):
+#             concert = concert_form.save()
+
+#             # Does the job "Réžia" exist? If no, create it.
+#             director_job, created = Job.objects.get_or_create(name="Réžia")
+#             director = director_form.save(commit=False)
+#             director.concert = concert
+#             director.job = director_job
+#             director.save()
+
+#             scene_job, created = Job.objects.get_or_create(name="Scéna")
+#             scene = scene_form.save(commit=False)
+#             scene.concert = concert
+#             scene.job = scene_job
+#             scene.save()
+
+#             dramaturgy_job, created = Job.objects.get_or_create(name="Dramaturg")
+#             dramaturgy = dramaturgy_form.save(commit=False)
+#             dramaturgy.concert = concert
+#             dramaturgy.job = dramaturgy_job
+#             dramaturgy.save()
+
+#             for performer_form in performer_forms:
+#                 performer = performer_form.save(commit=False)
+#                 performer.concert = concert
+#                 performer.save()
+
+#             if document_form.is_valid():
+#                 for file in request.FILES.getlist('program_files'):
+#                     document = Document(file=file)
+#                     document.save()
+#                     ConcertDocument.objects.create(concert=concert, document=document)
+
+#                 for file in request.FILES.getlist('photo_files'):
+#                     document = Document(file=file)
+#                     document.save()
+#                     ConcertDocument.objects.create(concert=concert, document=document)
+
+#             return redirect('concert_list')  # Redirect to a list of concerts or another appropriate view
+#         else:
+#             # debugging
+#             print(concert_form.errors)
+#             print(director_form.errors)
+#             print(scene_form.errors)
+#             print(dramaturgy_form.errors)
+#             for pf in performer_forms:
+#                 print(pf.errors)
+#             print(document_form.errors)
+
+#     else:
+#         concert_form = ConcertForm()
+#         director_form = ConcertPerformerForm(prefix='director')
+#         scene_form = ConcertPerformerForm(prefix='scene')
+#         dramaturgy_form = ConcertPerformerForm(prefix='dramaturgy')
+#         performer_forms = [ConcertPerformerForm(prefix=str(i)) for i in range(1)]
+#         document_form = DocumentForm()
+
+#     employees = Employee.objects.all()
+#     jobs = Job.objects.filter(play_character=False)
+
+#     return render(request, 'archive_app/form_concerts_and_events.html', {
+#         'concert_form': concert_form,
+#         'director_form': director_form,
+#         'scene_form': scene_form,
+#         'dramaturgy_form': dramaturgy_form,
+#         'performer_forms': performer_forms,
+#         'document_form': document_form,
+#         'employees': employees,
+#         'jobs': jobs,
+#     })
+
+    
+    #def edit_concert(request, concert_id):
+        #concert = get_object_or_404(ConcertOrEvent, id=concert_id)

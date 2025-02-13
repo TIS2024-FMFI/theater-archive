@@ -2,118 +2,165 @@
 {% load static %}
 {% block content %}
 <section class="content">
-    <link rel="stylesheet" href="{%  static 'archive_app/form_concerts_and_events.css' %}">
+    <link rel="stylesheet" href="{% static 'archive_app/form_concerts_and_events.css' %}">
     <div class="form-container">
-        <h2>Nový koncert/podujatie</h2>
-
-        <form>
+        <h2>{% if concert and concert.id %}Upraviť{% else %}Pridať{% endif %} koncert/podujatie</h2>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <!-- Názov (Name) -->
             <div class="form-group">
-                <label for="date">Dátum :</label>
-                <input type="date" id="date" name="date">
+                <label for="id_name">Názov :</label>
+                {{ concert_form.name }}
             </div>
 
+            <!-- Koncert/podujatie (Concert/Event Type) -->
             <div class="form-group">
-                <label for="event-type">Koncert/podujatie :</label>
-                <select id="event-type" name="event-type">
-                    <option value="koncert">Koncert</option>
-                    <option value="podujatie">Podujatie</option>
-                </select>
+                <label for="id_concert_type">Koncert/podujatie :</label>
+                {{ concert_form.concert_type }}
             </div>
 
+            <!-- Dátum (Date) -->
             <div class="form-group">
-                <label for="title">Názov :</label>
-                <input type="text" id="title" name="title" placeholder="Názov koncertu / podujatia">
+                <label for="id_date">Dátum :</label>
+                {{ concert_form.date }}
             </div>
 
+            <!-- Popis (Description) -->
             <div class="form-group">
-                <label for="description">Popis :</label>
-                <textarea id="description" name="description" rows="5" placeholder="Sem píšte popis..."></textarea>
+                <label for="id_description">Popis :</label>
+                {{ concert_form.description }}
             </div>
 
+            <!-- Inscenačný tím (Production Team) -->
             <h3>Inscenačný tím :</h3>
             <div class="form-group">
                 <label for="director">Réžia :</label>
-                <select id="director" name="director">
-                    <option value="">-</option>
-                </select>
+                {{ director_form.employee }}
             </div>
 
             <div class="form-group">
                 <label for="scene">Scéna :</label>
-                <select id="scene" name="scene">
-                    <option value="">-</option>
-                </select>
+                {{ scene_form.employee }}
             </div>
 
             <div class="form-group">
                 <label for="dramaturgy">Dramaturg :</label>
-                <select id="dramaturgy" name="dramaturgy">
-                    <option value="">-</option>
-                </select>
+                {{ dramaturgy_form.employee }}
             </div>
 
-            <h3>Účinkujúci :</h3>
+            <button type="submit" class="btn btn-primary">Uložiť</button>
+        </form>
+    </div>
+</section>
+{% endblock %}
+
+
+
+
+
+
+
+
+<!--             
+            Inscenačný tím (Production Team)
+            <h3>Inscenačný tím :</h3>
             <div class="form-group">
-                <label for="position">Zaradenie :</label>
-                <select id="position" name="position">
-                    <option value="">-</option>
-                </select>
-                <button type="button" class="btn">&#10006;</button>
+                <label for="director">Réžia :</label>
+                {{ director_form.employee }}
             </div>
 
             <div class="form-group">
-                <label></label>
-                <button type="button" class="btn">&#10010;</button>
+                <label for="scene">Scéna :</label>
+                {{ scene_form.employee }}
             </div>
 
-            <h3> Prílohy:</h3>
-            <div class="form-group upload-section">
-                 <label class="upload-label">Program&ensp;
-                    <input type="file" id="file-upload-1" class="file-input" accept="image/*, .pdf, .doc, .docx">
-                    <span class="btn">Prilož súbor</span>
-                    <img id="file-preview-1" class="file-preview">
-                </label>
-                <br>
-                <label class="upload-label">Fotografie&ensp;
-                    <input type="file" id="file-upload-2" class="file-input" accept="image/*, .pdf, .doc, .docx">
-                    <span class="btn">Prilož súbor</span>
-                    <img id="file-preview-2" class="file-preview">
-                </label>
+            <div class="form-group">
+                <label for="dramaturgy">Dramaturg :</label>
+                {{ dramaturgy_form.employee }}
             </div>
 
-            <div class="form-actions">
-                <label for="publish" class="publish">
-                    <input type="checkbox" id="publish">Zverejniť
-                </label>
-                <button type="submit" class="submit">Uložiť</button>
+             Účinkujúci (Performers)
+             <h3>Účinkujúci :</h3>
+             <div id="performer-container">
+                 {% for performer_form in performer_forms %}
+                     <div class="performer-form">
+                         <div class="form-group">
+                             <label for="{{ performer_form.prefix }}-job">Zaradenie :</label>
+                             {{ performer_form.job }}
+                         </div>
+                         <div class="form-group">
+                             <label for="{{ performer_form.prefix }}-employee">Umelec :</label>
+                             {{ performer_form.employee }}
+                         </div>
+                         <button type="button" class="remove-performer btn">✖</button>
+                     </div>
+                 {% endfor %}
+             </div>
+             <button type="button" class="btn" id="add-performer">&#10010;</button>
+             <input type="hidden" name="performer_count" id="performer_count" value="{{ performer_forms|length }}">
+             
+ 
+             Prílohy (Attachments)
+            <h3>Prílohy:</h3>
+            <div class="form-group">
+                <label for="program">Program:</label>
+                <input type="file" name="program_files" class="form-control">
             </div>
+            <div class="form-group">
+                <label for="photos">Fotografie:</label>
+                <input type="file" name="photo_files" class="form-control" multiple>
+            </div>
+
+            <button type="submit" class="btn">Uložiť</button>
         </form>
     </div>
 </section>
 
-    <script>
-        document.querySelectorAll('.file-input').forEach((input) => {
-            input.addEventListener('change', function () {
-                let file = this.files[0];
-                let previewElement = document.getElementById('file-preview-' + this.id.split('-')[2]);
 
-                if (file) {
-                    // Check if the file is an image
-                    if (file.type.startsWith('image/')) {
-                        let reader = new FileReader();
-                        reader.onload = function (e) {
-                            previewElement.src = e.target.result;
-                            previewElement.style.display = 'block';
-                        };
-                        reader.readAsDataURL(file);
-                    } else {
-                        previewElement.style.display = 'none';
-                    }
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        let performerCount = JSON.parse(document.getElementById('performerCount').textContent);
+        const performerContainer = document.getElementById('performer-container');
+        const addPerformerButton = document.getElementById('add-performer');
+        const performerCountInput = document.getElementById('performer_count');
 
-                    this.nextElementSibling.textContent = "Súbor prijatý";
-                }
-            });
+        addPerformerButton.addEventListener('click', function () {
+            const newPerformerForm = document.createElement('div');
+            newPerformerForm.classList.add('performer-form');
+            newPerformerForm.innerHTML = `
+                <div class="form-group">
+                    <label for="id_${performerCount}-job">Zaradenie :</label>
+                    <select name="${performerCount}-job" class="form-control">
+                        {% for job in jobs %}
+                            <option value="{{ job.id }}">{{ job.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="id_${performerCount}-employee">Umelec :</label>
+                    <select name="${performerCount}-employee" class="form-control" autocomplete="off">
+                        {% for employee in employees %}
+                            <option value="{{ employee.id }}">{{ employee.first_name }} {{ employee.last_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="button" class="remove-performer btn">✖</button>
+            `;
+            performerContainer.appendChild(newPerformerForm);
+            performerCount++;
+            performerCountInput.value = performerCount;
         });
 
-    </script>
-{% endblock %}
+        performerContainer.addEventListener('click', function (e) {
+            if (e.target.classList.contains('remove-performer')) {
+                e.target.parentElement.remove();
+                performerCount--;
+                performerCountInput.value = performerCount;
+            }
+        });
+    });
+</script> -->
+
+
+
