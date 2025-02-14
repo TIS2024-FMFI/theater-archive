@@ -226,31 +226,57 @@ class ConcertForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 5, 'placeholder': 'Sem píšte popis...'}),
         }
 
-class ConcertStagingTeamForm(forms.ModelForm): #inscenacny tim
-    employee = forms.ModelChoiceField(
-        queryset=Employee.objects.all(),
-        widget=forms.Select(attrs={'class': 'form-control', 'autocomplete': 'off'})
+
+class ConcertPerformerForm(forms.ModelForm): #ucinkujuci
+    employee_name = forms.CharField(
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Umelec',
+            'data-url': "autocomplete/"
+        })
     )
-    
+
+    job = forms.CharField(
+        required=False,  # Allow entering a custom job
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Pozícia účinkujúceho'})
+    )
 
     class Meta:
         model = ConcertPerformer
-        fields = ['employee']
+        fields = ['employee_name', 'job']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            if self.instance.employee:
+                self.fields[
+                    'employee_name'].initial = f"{self.instance.employee.first_name} {self.instance.employee.last_name}"
+
+    def save(self, commit=True):
+        concert_performer = super().save(commit=False)
+        employee_name  = self.cleaned_data['employee_name'].strip()
+        job = self.cleaned_data.get('job', '').strip()
+
+        name_parts = employee_name.split()
+        if len(name_parts) < 2:
+            raise forms.ValidationError("Please enter both first and last name.")
+
+        first_name, last_name = name_parts[0], " ".join(name_parts[1:])
+        print(first_name, last_name)
+        try:
+            employee = Employee.objects.get(first_name=first_name, last_name=last_name)
+            print("Employee, job:", employee, job)
+        except Employee.DoesNotExist:
+            raise forms.ValidationError("This employee does not exist. Please select an existing employee.")
 
 
-# class ConcertPerformerForm(forms.ModelForm): #ucinkujuci
-#     employee = forms.ModelChoiceField(
-#         queryset=Employee.objects.all(),
-#         widget=forms.Select(attrs={'class': 'form-control', 'autocomplete': 'off'})
-#     )
-#     job = forms.ModelChoiceField(
-#         queryset=Job.objects.filter(play_character=False),
-#         widget=forms.Select(attrs={'class': 'form-control'})
-#     )
+        concert_performer.employee = employee
+        concert_performer.job = job
+        if commit:
+            concert_performer.save()
 
-#     class Meta:
-#         model = ConcertPerformer
-#         fields = ['employee', 'job']
+        return concert_performer
 
 
 class DocumentForm(forms.ModelForm):

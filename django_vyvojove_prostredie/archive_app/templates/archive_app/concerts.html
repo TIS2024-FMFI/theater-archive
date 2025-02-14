@@ -45,7 +45,8 @@
             </div>
             <div class="filter search">
                 <label for="key-term">Kľúčový pojem</label>
-                <input id="key-term" type="text" class="search-input" placeholder="Sem napíš pojem">
+                <input id="key-term" type="text" class="search-input" placeholder="Sem napíš pojem" name="search"
+                        {% if selected_search %} value="{{selected_search}}"{% endif %}>
             </div>
             <div class="filter">
                 <button class="btn" id="search-button" type="submit">Vyhľadať</button>
