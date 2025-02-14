@@ -104,7 +104,12 @@
 {#                <input type="file" name="photo_files" class="form-control" multiple>#}
 {#            </div>#}
             <hr>
-            <button type="submit" class="btn btn-primary">Uložiť</button>
+            <div class="form-actions">
+                <label for="publish" class="publish">
+                    <input type="checkbox" id="publish" name="publicity" {% if concert_form.publicity.value == True %} checked {% endif %}>Zverejniť
+                </label>
+                <button type="submit" class="submit">Uložiť</button>
+            </div>
         </form>
     </div>
 
