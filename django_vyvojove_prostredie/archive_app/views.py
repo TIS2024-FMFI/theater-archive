@@ -15,6 +15,7 @@ from itertools import chain
 from .forms import *
 from django.db.models.functions import TruncMonth, TruncYear
 from django.db.models import Q
+from django.views.decorators.csrf import csrf_exempt
 
 
 def get_all(model: Type[models.Model], filters: Optional[Dict[str, Any]] = None):
@@ -186,18 +187,53 @@ def list_employees(request):
 def form_plays(request):
     genres = GenreType.objects.all()
     ensembles = Ensemble.objects.all()
+
     if request.method == 'POST':
         form = PlayForm(request.POST)
         if form.is_valid():
-            form.save()
-            return redirect('list_plays')  # Redirect to a view that lists employees
+            play = form.save()
+
+            # Spracovanie všetkých typov súborov
+            file_fields = {
+                'documents_articles': 'article',
+                'documents_posters': 'poster',
+                'documents_photos': 'photo'
+            }
+
+            for field_name, doc_type in file_fields.items():
+                uploaded_files = request.FILES.getlist(field_name)
+                for uploaded_file in uploaded_files:
+                    document = Document.objects.create(document_path=uploaded_file)
+                    PlayDocument.objects.create(play=play, document=document)
+
+            return JsonResponse({'success': True, 'redirect_url': reverse('get_play', args=[play.id])})
         else:
-            print(form.errors)
-    else:
-        form = PlayForm()
-    return render(request,'archive_app/form_play.html', {
-        'form':form, 'genres':genres, 'ensembles':ensembles
+            return JsonResponse({'success': False, 'errors': form.errors})
+
+    form = PlayForm()
+    return render(request, 'archive_app/form_play.html', {
+        'form': form,
+        'genres': genres,
+        'ensembles': ensembles
     })
+
+
+@csrf_exempt
+def upload_file(request, play_id):
+    if request.method == 'POST' and request.FILES:
+        play = get_object_or_404(Play, id=play_id)
+
+        uploaded_files = request.FILES.getlist('file')
+        saved_files = []
+
+        for uploaded_file in uploaded_files:
+            document = Document.objects.create(document_path=uploaded_file)
+            PlayDocument.objects.create(play=play, document=document)
+            saved_files.append(uploaded_file.name)
+
+        return JsonResponse({'success': True, 'files': saved_files})
+
+    return JsonResponse({'success': False, 'error': 'Žiadne súbory neboli nahrané'})
 
 def form_repeats(request, id):
     RepeatPerformerFormSet = inlineformset_factory(
@@ -241,7 +277,36 @@ def form_repeats(request, id):
     })
 
 def form_concerts_and_events(request):
-    return render(request, 'archive_app/form_concerts_and_events.html')
+    concert_types = ConcertType.objects.all()
+    employees = Employee.objects.all()
+    
+    if request.method == 'POST':
+        form = ConcertForm(request.POST)
+        if form.is_valid():
+            concert = form.save()
+
+            # Spracovanie všetkých typov súborov
+            file_fields = {
+                'documents_program': 'program',
+                'documents_photos': 'photo'
+            }
+
+            for field_name, doc_type in file_fields.items():
+                uploaded_files = request.FILES.getlist(field_name)  # Spracovanie viacerých súborov
+                for uploaded_file in uploaded_files:
+                    document = Document.objects.create(document_path=uploaded_file)
+                    ConcertDocument.objects.create(concert=concert, document=document)
+
+            return JsonResponse({'success': True, 'redirect_url': reverse('get_concert_or_event', args=[concert.id])})
+        else:
+            return JsonResponse({'success': False, 'errors': form.errors})
+
+    form = ConcertForm()
+    return render(request, 'archive_app/form_concerts_and_events.html', {
+        'form': form,
+        'concert_types': concert_types,
+        'employees': employees  # Posielame všetkých zamestnancov pre výberové polia
+    })
 
 def form_ensembles(request):
     if request.method == "POST":
@@ -297,6 +362,12 @@ def get_play(request, id):
     else:
         repeats = Repeat.objects.filter(play=play)
 
+    documents = PlayDocument.objects.filter(play=play)
+
+    articles = [doc for doc in documents if "article" in doc.document.document_path.name.lower()]
+    posters = [doc for doc in documents if "poster" in doc.document.document_path.name.lower()]
+    photos = [doc for doc in documents if doc.document.document_path.name.lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))]
+    
     # production = PlayPerformer.objects.filter(play=play)
     qs_roles = PlayPerformer.objects.filter(play=play)
     production = dict()
@@ -318,7 +389,7 @@ def get_play(request, id):
             performers[job].append(employee)
 
     return render(request, 'archive_app/get_play.html', {
-        'play': play, 'repeats':repeats, 'production':production, 'performers':performers
+        'play': play, 'repeats':repeats, 'production':production, 'performers':performers, 'documents': documents, 'articles': articles, 'posters': posters, 'photos': photos
     })
 
 def get_repeat(request, id_play, id_repeat):

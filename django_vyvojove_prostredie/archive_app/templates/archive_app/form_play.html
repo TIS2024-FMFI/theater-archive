@@ -2,79 +2,156 @@
 {% load static %}
 {% block content %}
 <section class="content">
-    <link rel="stylesheet" href="{%  static 'archive_app/form_concerts_and_events.css' %}">
+    <link rel="stylesheet" href="{% static 'archive_app/form_concerts_and_events.css' %}">
     <div class="form-container">
 
         <h2>{% if play.id %}Upraviť{% else %}Pridať{% endif %} divadelné predstavenie</h2>
-        <form method="post" enctype="multipart/form-data">
+        <form id="play-form">
             {% csrf_token %}
 
             <div class="form-group">
                 <label for="title">Titul:</label>
-                <input id="title" name="title" type="text" placeholder="Titul" required {% if play.id %} value="{{ form.title.value }}" {% endif %}>
-{#                <label for="subtitle">Podtitul:</label>#}
-                <input type="text" id="subtitle" placeholder="Podtitul" {% if play.subtitle %} value="{{ form.subtitle.value }}" {% endif %}>
+                <input id="title" name="title" type="text" placeholder="Titul" required value="{{ form.title.value|default_if_none:'' }}">
+                <input type="text" id="subtitle" name="subtitle" placeholder="Podtitul" value="{{ form.subtitle.value|default_if_none:'' }}">
             </div>
 
             <div class="form-group">
                 <label for="author-name">Autor:</label>
-                <input type="text" name="author_first_name" placeholder="Meno" {% if play.id %} value="{{ form.author_first_name.value }}" {% endif %}>
-                <input type="text" name="author_last_name" placeholder="Priezvisko" {% if play.id %} value="{{ form.author_last_name.value }}" {% endif %}>
+                <input type="text" name="author_first_name" placeholder="Meno" value="{{ form.author_first_name.value|default_if_none:'' }}">
+                <input type="text" name="author_last_name" placeholder="Priezvisko" value="{{ form.author_last_name.value|default_if_none:'' }}">
             </div>
 
             <div class="form-group">
                 <label for="ensemble">Súbor:</label>
                 <select id="ensemble" name="ensemble" required>
                     {% for e in ensembles %}
-                        <option value="{{ e.id }}" {% if play.ensembles == e %}selected{% endif %}> {{ e.name }}  </option>
+                        <option value="{{ e.id }}" {% if form.ensemble.value == e.id %}selected{% endif %}>{{ e.name }}</option>
                     {% endfor %}
                 </select>
             </div>
 
             <div class="form-group">
                 <label for="description">Popis:</label>
-                <textarea id="description" name="description" rows="5" placeholder="Sem píšte popis...">{% if play.id %}{{ form.description.value }}{% endif %}</textarea>
+                <textarea id="description" name="description" rows="5" placeholder="Sem píšte popis...">{{ form.description.value|default_if_none:'' }}</textarea>
             </div>
 
             <div class="form-group">
                 <label for="genre">Žáner:</label>
                 <select id="genre_type" name="genre_type">
                     {% for g in genres %}
-                        <option value="{{ g.id }}" {% if play.genre_type == g %}selected{% endif %}> {{ g.name }}  </option>
+                        <option value="{{ g.id }}" {% if form.genre_type.value == g.id %}selected{% endif %}>{{ g.name }}</option>
                     {% endfor %}
                 </select>
             </div>
 
             <h3> Prílohy:</h3>
             <div class="form-group upload-section">
-                 <label class="upload-label">Články a kritiky&ensp;
-                    <input type="file" id="file-upload-1" class="file-input" accept="image/*, .pdf, .doc, .docx">
-                    <span class="btn">Prilož súbor</span>
-                    <img id="file-preview-1" class="file-preview">
+                <label class="upload-label">Články a kritiky&ensp;
+                    <input type="file" id="upload-articles" name="documents_articles" multiple accept=".pdf,.doc,.docx" onchange="updateFileList('articles')">
                 </label>
-
-                <label class="upload-label">Plagát a bulletin&ensp;
-                    <input type="file" id="file-upload-2" class="file-input" accept="image/*, .pdf, .doc, .docx">
-                    <span class="btn">Prilož súbor</span>
-                    <img id="file-preview-2" class="file-preview">
-                </label>
-
-                <label class="upload-label">Fotografie&ensp;
-                    <input type="file" id="file-upload-3" class="file-input" accept="image/*, .pdf, .doc, .docx">
-                    <span class="btn">Prilož súbor</span>
-                    <img id="file-preview-3" class="file-preview">
-                </label>
+                <ul id="file-list-articles"></ul>
             </div>
 
+            <div class="form-group upload-section">
+                <label class="upload-label">Plagát a bulletin&ensp;
+                    <input type="file" id="upload-posters" name="documents_posters" multiple accept=".pdf,.doc,.docx" onchange="updateFileList('posters')">
+                </label>
+                <ul id="file-list-posters"></ul>
+            </div>
+
+            <div class="form-group upload-section">
+                <label class="upload-label">Fotografie&ensp;
+                    <input type="file" id="upload-photos" name="documents_photos" multiple accept="image/*" onchange="updateFileList('photos')">
+                </label>
+                <ul id="file-list-photos"></ul>
+            </div>
 
             <div class="form-actions">
                 <label for="publish" class="publish">
-                    <input type="checkbox" name="publicity" {% if play.publicity == True %} checked {% endif %}> Zverejniť
+                    <input type="checkbox" name="publicity"> Zverejniť
                 </label>
-                <button type="submit" class="submit">Uložiť</button>
+                <button type="button" class="submit" onclick="submitPlayForm()">Uložiť</button>
             </div>
         </form>
     </div>
-
 </section>
+
+<script>
+    let selectedFiles = {
+        articles: [],
+        posters: [],
+        photos: []
+    };
+
+    function updateFileList(fileType) {
+        let fileInput = document.getElementById(`upload-${fileType}`);
+        let fileList = document.getElementById(`file-list-${fileType}`);
+        let files = Array.from(fileInput.files);
+
+        selectedFiles[fileType] = selectedFiles[fileType].concat(files);
+
+        fileList.innerHTML = "";
+        selectedFiles[fileType].forEach((file, index) => {
+            let listItem = document.createElement("li");
+            listItem.textContent = file.name;
+            listItem.appendChild(createRemoveButton(fileType, index));
+            fileList.appendChild(listItem);
+        });
+
+        fileInput.value = "";
+    }
+
+    function createRemoveButton(fileType, index) {
+        let removeButton = document.createElement("button");
+        removeButton.textContent = "❌";
+        removeButton.style.marginLeft = "10px";
+        removeButton.onclick = function() {
+            selectedFiles[fileType].splice(index, 1);
+            updateFileList(fileType);
+        };
+        return removeButton;
+    }
+
+    function submitPlayForm() {
+        let form = document.getElementById("play-form");
+        let formData = new FormData(form);
+
+        // Pridanie súborov do FormData
+        Object.keys(selectedFiles).forEach(fileType => {
+            selectedFiles[fileType].forEach(file => {
+                formData.append(`documents_${fileType}`, file);
+            });
+        });
+
+        fetch("{% url 'form_plays' %}", {
+            method: "POST",
+            body: formData,
+            headers: { "X-CSRFToken": getCookie("csrftoken") }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = data.redirect_url;
+            } else {
+                alert("Chyba pri ukladaní: " + JSON.stringify(data.errors));
+            }
+        });
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            let cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                let cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+
 {% endblock %}

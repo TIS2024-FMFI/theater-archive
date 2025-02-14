@@ -99,23 +99,22 @@
         </div>
 
         <div class="photos-right-section">
-            <div class="label">Články a kritiky:</div>
-            <div class="pdf-link">
-                <div class="pdf-icon">PDF</div>
-                <a href="#" target="_blank">Stiahnuť článok</a>
-            </div>
-
-            <div class="label">Plagát a bulletin:</div>
-            <div class="pdf-link">
-                <div class="pdf-icon">PDF</div>
-                <a href="#" target="_blank">Stiahnuť bulletin</a>
-            </div>
-
-            <div class="label">Fotografie:</div>
-            <div class="photo-gallery">
-                <div class="photo">Foto 1</div>
-                <div class="photo">Foto 2</div>
-            </div>
+            {% for doc in documents %}
+                {% with doc.document.document_path.url|lower as file_url %}
+                    {% if file_url|slice:"-4:" == ".jpg" or file_url|slice:"-4:" == ".png" or file_url|slice:"-5:" == ".jpeg" or file_url|slice:"-4:" == ".gif" %}
+                        <div class="photo-gallery">
+                            <img src="{{ file_url }}" alt="Fotografia z predstavenia" class="photo">
+                        </div>
+                    {% else %}
+                        <div class="pdf-link">
+                            <div class="pdf-icon">📄</div>
+                            <a href="{{ file_url }}" target="_blank">Stiahnuť súbor</a>
+                        </div>
+                    {% endif %}
+                {% endwith %}
+            {% empty %}
+                <p>Žiadne prílohy</p>
+            {% endfor %}
         </div>
     </div>
 </section>

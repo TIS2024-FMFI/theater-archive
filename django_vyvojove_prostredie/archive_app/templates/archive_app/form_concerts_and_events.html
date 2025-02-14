@@ -35,6 +35,9 @@
                 <label for="director">Réžia :</label>
                 <select id="director" name="director">
                     <option value="">-</option>
+                    {% for employee in employees %}
+                        <option value="{{ employee.id }}">{{ employee.first_name }} {{ employee.last_name }}</option>
+                    {% endfor %}
                 </select>
             </div>
 
@@ -42,6 +45,9 @@
                 <label for="scene">Scéna :</label>
                 <select id="scene" name="scene">
                     <option value="">-</option>
+                    {% for employee in employees %}
+                        <option value="{{ employee.id }}">{{ employee.first_name }} {{ employee.last_name }}</option>
+                    {% endfor %}
                 </select>
             </div>
 
@@ -49,6 +55,9 @@
                 <label for="dramaturgy">Dramaturg :</label>
                 <select id="dramaturgy" name="dramaturgy">
                     <option value="">-</option>
+                    {% for employee in employees %}
+                        <option value="{{ employee.id }}">{{ employee.first_name }} {{ employee.last_name }}</option>
+                    {% endfor %}
                 </select>
             </div>
 
@@ -57,6 +66,9 @@
                 <label for="position">Zaradenie :</label>
                 <select id="position" name="position">
                     <option value="">-</option>
+                    {% for employee in employees %}
+                        <option value="{{ employee.id }}">{{ employee.first_name }} {{ employee.last_name }}</option>
+                    {% endfor %}
                 </select>
                 <button type="button" class="btn">&#10006;</button>
             </div>
@@ -68,52 +80,103 @@
 
             <h3> Prílohy:</h3>
             <div class="form-group upload-section">
-                 <label class="upload-label">Program&ensp;
-                    <input type="file" id="file-upload-1" class="file-input" accept="image/*, .pdf, .doc, .docx">
-                    <span class="btn">Prilož súbor</span>
-                    <img id="file-preview-1" class="file-preview">
+                <label class="upload-label">Program&ensp;
+                    <input type="file" id="upload-program" name="documents_program" multiple accept=".pdf,.doc,.docx" onchange="updateFileList('program')">
                 </label>
-                <br>
+                <ul id="file-list-program"></ul>
+            </div>
+
+            <div class="form-group upload-section">
                 <label class="upload-label">Fotografie&ensp;
-                    <input type="file" id="file-upload-2" class="file-input" accept="image/*, .pdf, .doc, .docx">
-                    <span class="btn">Prilož súbor</span>
-                    <img id="file-preview-2" class="file-preview">
+                    <input type="file" id="upload-photos" name="documents_photos" multiple accept="image/*" onchange="updateFileList('photos')">
                 </label>
+                <ul id="file-list-photos"></ul>
             </div>
 
             <div class="form-actions">
                 <label for="publish" class="publish">
-                    <input type="checkbox" id="publish">Zverejniť
+                    <input type="checkbox" name="publicity"> Zverejniť
                 </label>
-                <button type="submit" class="submit">Uložiť</button>
+                <button type="button" class="submit" onclick="submitConcertForm()">Uložiť</button>
             </div>
         </form>
     </div>
 </section>
 
-    <script>
-        document.querySelectorAll('.file-input').forEach((input) => {
-            input.addEventListener('change', function () {
-                let file = this.files[0];
-                let previewElement = document.getElementById('file-preview-' + this.id.split('-')[2]);
+<script>
+    let selectedFiles = {
+        program: [],
+        photos: []
+    };
 
-                if (file) {
-                    // Check if the file is an image
-                    if (file.type.startsWith('image/')) {
-                        let reader = new FileReader();
-                        reader.onload = function (e) {
-                            previewElement.src = e.target.result;
-                            previewElement.style.display = 'block';
-                        };
-                        reader.readAsDataURL(file);
-                    } else {
-                        previewElement.style.display = 'none';
-                    }
+    function updateFileList(fileType) {
+        let fileInput = document.getElementById(`upload-${fileType}`);
+        let fileList = document.getElementById(`file-list-${fileType}`);
+        let files = Array.from(fileInput.files);
 
-                    this.nextElementSibling.textContent = "Súbor prijatý";
-                }
+        selectedFiles[fileType] = selectedFiles[fileType].concat(files);
+
+        fileList.innerHTML = "";
+        selectedFiles[fileType].forEach((file, index) => {
+            let listItem = document.createElement("li");
+            listItem.textContent = file.name;
+            listItem.appendChild(createRemoveButton(fileType, index));
+            fileList.appendChild(listItem);
+        });
+
+        fileInput.value = "";
+    }
+
+    function createRemoveButton(fileType, index) {
+        let removeButton = document.createElement("button");
+        removeButton.textContent = "❌";
+        removeButton.style.marginLeft = "10px";
+        removeButton.onclick = function() {
+            selectedFiles[fileType].splice(index, 1);
+            updateFileList(fileType);
+        };
+        return removeButton;
+    }
+
+    function submitConcertForm() {
+        let form = document.getElementById("concert-form");
+        let formData = new FormData(form);
+
+        // Pridanie súborov do FormData
+        Object.keys(selectedFiles).forEach(fileType => {
+            selectedFiles[fileType].forEach(file => {
+                formData.append(`documents_${fileType}`, file);
             });
         });
 
-    </script>
+        fetch("{% url 'form_concerts_and_events' %}", {
+            method: "POST",
+            body: formData,
+            headers: { "X-CSRFToken": getCookie("csrftoken") }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = data.redirect_url;
+            } else {
+                alert("Chyba pri ukladaní: " + JSON.stringify(data.errors));
+            }
+        });
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            let cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                let cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
 {% endblock %}

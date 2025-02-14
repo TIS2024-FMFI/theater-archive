@@ -1,5 +1,7 @@
 from django.urls import path
 from . import views
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path("", views.main_page, name = "main_page"),
@@ -33,5 +35,9 @@ urlpatterns = [
 
     path('plays/edit/<int:id>/', views.edit_play, name='edit_play'),
     path('plays/get_play/<int:id_play>/edit/<int:id_repeat>', views.edit_repeat, name='edit_repeat'),
+    path('upload/<int:play_id>/', views.upload_file, name='upload_file'),
     path('employee/edit/<int:id>/', views.edit_employee, name='edit_employee')
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

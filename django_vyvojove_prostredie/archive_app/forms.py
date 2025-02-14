@@ -93,11 +93,34 @@ class PlayForm(forms.ModelForm):
         widget=forms.Select(attrs={'class': 'form-control'})
     )
 
+    documents_articles = forms.FileField(required=False, widget=forms.ClearableFileInput(attrs={'accept': '.pdf,.doc,.docx'}))
+    documents_posters = forms.FileField(required=False, widget=forms.ClearableFileInput(attrs={'accept': '.pdf,.doc,.docx'}))
+    documents_photos = forms.FileField(required=False, widget=forms.ClearableFileInput(attrs={'accept': 'image/*'}))
+
     class Meta:
         model = Play
         fields = "__all__"
         widgets = {
             'description': forms.Textarea(attrs={'rows': 4}),
+        }
+
+
+class ConcertForm(forms.ModelForm):
+    concert_type = forms.ModelChoiceField(
+        queryset=ConcertType.objects.all(),
+        empty_label="Vyberte typ koncertu",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    documents_program = forms.FileField(required=False, widget=forms.ClearableFileInput(attrs={'accept': '.pdf,.doc,.docx'}))
+    documents_photos = forms.FileField(required=False, widget=forms.ClearableFileInput(attrs={'accept': 'image/*'}))
+
+    class Meta:
+        model = Concert
+        fields = "__all__"
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 4}),
+            'date': forms.DateInput(attrs={'type': 'datetime-local'})
         }
 
 
