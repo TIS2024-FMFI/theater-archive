@@ -22,6 +22,9 @@
                 <a href="/concerts_and_events">Koncerty a podujatia</a>
                 <a href="/ensembles">Súbory</a>
                 <a href="/employees">Umelci a spolupracovníci</a>
+                {% if request.user.is_authenticated and request.user.is_staff %}
+                    <a href="/admin">Správa administrátora</a>
+                {% endif %}
             </nav>
             <div class="login">
                 {% if request.user.is_authenticated and request.user.is_staff %}
