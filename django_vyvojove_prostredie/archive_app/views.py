@@ -19,21 +19,13 @@ from .forms import *
 from django.db.models.functions import TruncMonth, TruncYear
 from django.db.models import Q
 from datetime import datetime
+from django.contrib import messages
 
 
 def get_all(model: Type[models.Model], filters: Optional[Dict[str, Any]] = None):
     if filters is None:
         filters = {}
     return model.objects.filter(**filters)
-
-def autocomplete(request, model):
-    if request.GET.get('q'):
-        q = request.GET['q']
-        data = model.objects.using('legacy').filter(email__startswith=q).values_list('email',flat=True)
-        json = list(data)
-        return JsonResponse(json, safe=False)
-    else:
-        HttpResponse("No cookies")
 
 def main_page(request):
     return render(request, 'archive_app/index.html')
@@ -232,11 +224,17 @@ def form_plays(request):
     ensembles = Ensemble.objects.all()
     if request.method == 'POST':
         form = PlayForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('list_plays')  # Redirect to a view that lists employees
-        else:
-            print(form.errors)
+        try:
+            if form.is_valid():
+                form.save()
+                return redirect('list_plays')  # Redirect to a view that lists employees
+            else:
+                print(form.errors)
+                messages.error(request, "There were errors in the form. Please correct them.")
+
+        except ValidationError as e:
+            # Convert error list to a readable format and send it as a message
+            messages.error(request, " ".join(e.messages))
     else:
         form = PlayForm()
     return render(request,'archive_app/form_play.html', {
@@ -258,22 +256,27 @@ def form_repeats(request, id):
         repeat_form = RepeatForm(request.POST)
         performer_formset = RepeatPerformerFormSet(request.POST)
 
+        try:
+            if repeat_form.is_valid() and performer_formset.is_valid():
+                repeat = repeat_form.save(commit=False)
+                repeat.play = play
+                repeat.save()
 
-        if repeat_form.is_valid() and performer_formset.is_valid():
-            repeat = repeat_form.save(commit=False)
-            repeat.play = play
-            repeat.save()
+                performers = performer_formset.save(commit=False)
+                for performer in performers:
+                    performer.repeat = repeat
+                    performer.save()  # This automatically assigns EmployeeJob
 
-            performers = performer_formset.save(commit=False)
-            for performer in performers:
-                performer.repeat = repeat
-                performer.save()  # This automatically assigns EmployeeJob
+                return redirect('get_repeat', id_play=play.id, id_repeat=repeat.id)  # Redirect after saving
 
-            return redirect('get_repeat', id_play=play.id, id_repeat=repeat.id)  # Redirect after saving
+            else:
+                print("Repeat Errors:", repeat_form.errors)
+                print("Performer Formset Errors:", performer_formset.errors)
+                messages.error(request, "There were errors in the form. Please correct them.")
 
-        else:
-            print("Repeat Errors:", repeat_form.errors)
-            print("Performer Formset Errors:", performer_formset.errors)
+        except ValidationError as e:
+            # Convert error list to a readable format and send it as a message
+            messages.error(request, " ".join(e.messages))
     else:
         repeat_form = RepeatForm()
         performer_formset = RepeatPerformerFormSet()
@@ -281,7 +284,8 @@ def form_repeats(request, id):
     return render(request, 'archive_app/form_repeat.html', {
         'play': play,
         'repeat_form': repeat_form,
-        'performer_formset': performer_formset
+        'performer_formset': performer_formset,
+        'employees': Employee.objects.all()
     })
 
 def form_concerts_and_events(request):
@@ -297,34 +301,48 @@ def form_concerts_and_events(request):
         concert_form = ConcertForm(request.POST)
         performer_formset = ConcertPerformerFormSet(request.POST)
 
-        if (concert_form.is_valid() and performer_formset.is_valid()):
-            concert = concert_form.save()
+        try:
+            if (concert_form.is_valid() and performer_formset.is_valid()):
+                concert = concert_form.save()
 
-            performers = performer_formset.save(commit=False)
-            for performer in performers:
-                performer.concert = concert
-                performer.save()  # This automatically assigns EmployeeJob
+                performers = performer_formset.save(commit=False)
+                for performer in performers:
+                    performer.concert = concert
+                    performer.save()  # This automatically assigns EmployeeJob
 
-            return redirect('get_concert_or_event', id_concert=concert.id)  # Redirect to a list of concerts or another appropriate view
+                return redirect('get_concert_or_event', id_concert=concert.id)  # Redirect to a list of concerts or another appropriate view
 
-        else:
-            print(concert_form.errors)
-            print(performer_formset.errors)
+            else:
+                print(concert_form.errors)
+                print(performer_formset.errors)
+                messages.error(request, "There were errors in the form. Please correct them.")
+
+        except ValidationError as e:
+            # Convert error list to a readable format and send it as a message
+            messages.error(request, " ".join(e.messages))
     else:
         concert_form = ConcertForm()
         performer_formset = ConcertPerformerFormSet()
 
     return render(request, 'archive_app/form_concerts_and_events.html', {
         'concert_form': concert_form,
-        'performer_formset': performer_formset
+        'performer_formset': performer_formset,
+        'employees': Employee.objects.all()
     })
 
 def form_ensembles(request):
     if request.method == "POST":
         form = EnsembleForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('list_ensembles')  # Redirect to the list of ensembles after saving
+        try:
+            if form.is_valid():
+                form.save()
+                return redirect('list_ensembles')  # Redirect to the list of ensembles after saving
+            else:
+                messages.error(request, "There were errors in the form. Please correct them.")
+
+        except ValidationError as e:
+            # Convert error list to a readable format and send it as a message
+            messages.error(request, " ".join(e.messages))
     else:
         form = EnsembleForm()
     
@@ -346,16 +364,22 @@ def form_employees(request): #virtualmachine44
         employee_form = EmployeeForm(request.POST)
         job_formset = EmployeeJobFormSet(request.POST)
 
-        if employee_form.is_valid() and job_formset.is_valid():
-            employee = employee_form.save()
+        try:
+            if employee_form.is_valid() and job_formset.is_valid():
+                employee = employee_form.save()
 
-            job_formset.instance = employee  # Assign employee to job formset
-            job_formset.save()  # Save EmployeeJob instances
+                job_formset.instance = employee  # Assign employee to job formset
+                job_formset.save()  # Save EmployeeJob instances
 
-            return redirect('list_employees')  # Redirect after saving
-        else:
-            print("Form Errors:", employee_form.errors)
-            print("Job Formset Errors:", job_formset.errors)
+                return redirect('list_employees')  # Redirect after saving
+            else:
+                print("Form Errors:", employee_form.errors)
+                print("Job Formset Errors:", job_formset.errors)
+                messages.error(request, "There were errors in the form. Please correct them.")
+
+        except ValidationError as e:
+            # Convert error list to a readable format and send it as a message
+            messages.error(request, " ".join(e.messages))
     else:
         employee_form = EmployeeForm()
         job_formset = EmployeeJobFormSet()
@@ -575,13 +599,19 @@ def edit_ensemble(request, ensemble_id):
     
     if request.method == "POST":
         form = EnsembleForm(request.POST, instance=ensemble)
-        if form.is_valid():
-            form.save()
-            print("Form is valid and saved")
-            return redirect('get_ensemble', id=ensemble.id)
-        else:
-            print("Form is not valid")
-            print(form.errors)
+        try:
+            if form.is_valid():
+                form.save()
+                print("Form is valid and saved")
+                return redirect('get_ensemble', id=ensemble.id)
+            else:
+                print("Form is not valid")
+                print(form.errors)
+                messages.error(request, "There were errors in the form. Please correct them.")
+
+        except ValidationError as e:
+            # Convert error list to a readable format and send it as a message
+            messages.error(request, " ".join(e.messages))
     else:
         form = EnsembleForm(instance=ensemble)
         
@@ -593,15 +623,22 @@ def copy_ensemble(request, ensemble_id):
     
     if request.method == "POST":
         form = EnsembleForm(request.POST)
-        if form.is_valid():
-            new_ensemble = form.save(commit=False)
-            if new_ensemble.name == original_ensemble.name:
-                form.add_error('name', 'The name must be different from the original ensemble.')
-            elif Ensemble.objects.filter(name=new_ensemble.name).exists():
-                form.add_error('name', 'An ensemble with this name already exists.')
+        try:
+            if form.is_valid():
+                new_ensemble = form.save(commit=False)
+                if new_ensemble.name == original_ensemble.name:
+                    form.add_error('name', 'The name must be different from the original ensemble.')
+                elif Ensemble.objects.filter(name=new_ensemble.name).exists():
+                    form.add_error('name', 'An ensemble with this name already exists.')
+                else:
+                    new_ensemble.save()
+                    return redirect('get_ensemble', id=new_ensemble.id)
             else:
-                new_ensemble.save()
-                return redirect('get_ensemble', id=new_ensemble.id)
+                messages.error(request, "There were errors in the form. Please correct them.")
+
+        except ValidationError as e:
+            # Convert error list to a readable format and send it as a message
+            messages.error(request, " ".join(e.messages))
     else:
         form = EnsembleForm(instance=original_ensemble)
         form.initial['name'] = ''  # Clear the name field to force the user to enter a new name
@@ -621,14 +658,20 @@ def edit_employee(request, id):
         employee_form = EmployeeForm(request.POST, instance=employee)
         job_formset = EmployeeJobFormSet(request.POST, instance=employee)
 
-        if employee_form.is_valid() and job_formset.is_valid():
-            print("POST Data:", request.POST)
-            employee_form.save()
+        try:
+            if employee_form.is_valid() and job_formset.is_valid():
+                print("POST Data:", request.POST)
+                employee_form.save()
 
-            return redirect('list_employees')  # Redirect after saving
-        else:
-            print("Form Errors:", employee_form.errors)
-            print("Job Formset Errors:", job_formset.errors)
+                return redirect('list_employees')  # Redirect after saving
+            else:
+                print("Form Errors:", employee_form.errors)
+                print("Job Formset Errors:", job_formset.errors)
+                messages.error(request, "There were errors in the form. Please correct them.")
+
+        except ValidationError as e:
+            # Convert error list to a readable format and send it as a message
+            messages.error(request, " ".join(e.messages))
     else:
         employee_form = EmployeeForm(instance=employee)
         job_formset = EmployeeJobFormSet(instance=employee)
@@ -647,11 +690,17 @@ def edit_play(request, id):
 
     if request.method == 'POST':
         form = PlayForm(request.POST, instance=play)
-        if form.is_valid():
-            form.save()
-            return redirect('list_plays')  # Redirect to a view that lists employees
-        else:
-            print(form.errors)
+        try:
+            if form.is_valid():
+                form.save()
+                return redirect('list_plays')  # Redirect to a view that lists employees
+            else:
+                print(form.errors)
+                messages.error(request, "There were errors in the form. Please correct them.")
+
+        except ValidationError as e:
+            # Convert error list to a readable format and send it as a message
+            messages.error(request, " ".join(e.messages))
     else:
         form = PlayForm(instance=play)
     return render(request, 'archive_app/form_play.html', {
@@ -676,24 +725,30 @@ def edit_repeat(request, id_play, id_repeat):
         repeat_form = RepeatForm(request.POST, instance=repeat)
         performer_formset = RepeatPerformerFormSet(request.POST, instance=repeat)
 
-        if repeat_form.is_valid() and performer_formset.is_valid():
-            # repeat = repeat_form.save(commit=False)
-            # repeat.play = play
-            repeat.save()
+        try:
+            if repeat_form.is_valid() and performer_formset.is_valid():
+                # repeat = repeat_form.save(commit=False)
+                # repeat.play = play
+                repeat.save()
 
-            # performers = performer_formset.save(commit=False)
-            for form in performer_formset:
-                if form.cleaned_data.get("DELETE", False):
-                    if form.instance.pk:
-                        form.instance.delete()
-                else:
-                    form.save()
+                # performers = performer_formset.save(commit=False)
+                for form in performer_formset:
+                    if form.cleaned_data.get("DELETE", False):
+                        if form.instance.pk:
+                            form.instance.delete()
+                    else:
+                        form.save()
 
-            return redirect('get_repeat', id_play=play.id, id_repeat=repeat.id)  # Redirect after saving
+                return redirect('get_repeat', id_play=play.id, id_repeat=repeat.id)  # Redirect after saving
 
-        else:
-            print("Repeat Errors:", repeat_form.errors)
-            print("Performer Formset Errors:", performer_formset.errors)
+            else:
+                print("Repeat Errors:", repeat_form.errors)
+                print("Performer Formset Errors:", performer_formset.errors)
+                messages.error(request, "There were errors in the form. Please correct them.")
+
+        except ValidationError as e:
+            # Convert error list to a readable format and send it as a message
+            messages.error(request, " ".join(e.messages))
     else:
 
         repeat_form = RepeatForm(instance=repeat)
@@ -703,7 +758,8 @@ def edit_repeat(request, id_play, id_repeat):
         'play': play,
         'repeat': repeat,
         'repeat_form': repeat_form,
-        'performer_formset': performer_formset
+        'performer_formset': performer_formset,
+        'employees': Employee.objects.all()
     })
 
 
@@ -721,22 +777,28 @@ def edit_concert(request, concert_id):
         concert_form = ConcertForm(request.POST, instance=concert)
         performer_formset = ConcertPerformerFormSet(request.POST, instance=concert)
 
-        if concert_form.is_valid() and performer_formset.is_valid():
-            concert = concert_form.save()
+        try:
+            if concert_form.is_valid() and performer_formset.is_valid():
+                concert = concert_form.save()
 
-            for performer in performer_formset:
-                if performer.cleaned_data.get("DELETE", False):
-                    if performer.instance.pk:
-                        performer.instance.delete()
-                else:
-                    if performer.cleaned_data.get('employee_name') and performer.cleaned_data.get('job'):
-                        performer.concert = concert
-                        performer.save()  # This automatically assigns EmployeeJob
+                for performer in performer_formset:
+                    if performer.cleaned_data.get("DELETE", False):
+                        if performer.instance.pk:
+                            performer.instance.delete()
+                    else:
+                        if performer.cleaned_data.get('employee_name') and performer.cleaned_data.get('job'):
+                            performer.concert = concert
+                            performer.save()  # This automatically assigns EmployeeJob
 
-            return redirect('get_concert_or_event', id_concert=concert.id)
-        else:
-            print(concert_form.errors)
-            print(performer_formset.errors)
+                return redirect('get_concert_or_event', id_concert=concert.id)
+            else:
+                print(concert_form.errors)
+                print(performer_formset.errors)
+                messages.error(request, "There were errors in the form. Please correct them.")
+
+        except ValidationError as e:
+            # Convert error list to a readable format and send it as a message
+            messages.error(request, " ".join(e.messages))
 
     else:
         concert_form = ConcertForm(instance=concert)
@@ -747,7 +809,8 @@ def edit_concert(request, concert_id):
     return render(request, 'archive_app/form_concerts_and_events.html', {
         'concert_form': concert_form,
         'concert': concert,
-        'performer_formset': performer_formset
+        'performer_formset': performer_formset,
+        'employees': Employee.objects.all()
     })
 
 
@@ -766,21 +829,27 @@ def copy_concert(request, concert_id):
         concert_form = ConcertForm(request.POST)
         performer_formset = ConcertPerformerFormSet(request.POST, instance=concert)
 
-        if concert_form.is_valid() and performer_formset.is_valid():
-            new_concert = concert_form.save(commit=False)
-            new_concert.id = None  # Ensure a new entry is created
-            new_concert.save()
+        try:
+            if concert_form.is_valid() and performer_formset.is_valid():
+                new_concert = concert_form.save(commit=False)
+                new_concert.id = None  # Ensure a new entry is created
+                new_concert.save()
 
-            performers = performer_formset.save(commit=False)
-            for performer in performers:
-                performer.concert = new_concert
-                performer.save()  # This automatically assigns EmployeeJob
+                performers = performer_formset.save(commit=False)
+                for performer in performers:
+                    performer.concert = new_concert
+                    performer.save()  # This automatically assigns EmployeeJob
 
-            return redirect('get_concert_or_event',
-                            id_concert=new_concert.id)  # Redirect to the new concert detail view after saving
-        else:
-            print(concert_form.errors)
-            print(performer_formset.errors)
+                return redirect('get_concert_or_event',
+                                id_concert=new_concert.id)  # Redirect to the new concert detail view after saving
+            else:
+                print(concert_form.errors)
+                print(performer_formset.errors)
+                messages.error(request, "There were errors in the form. Please correct them.")
+
+        except ValidationError as e:
+            # Convert error list to a readable format and send it as a message
+            messages.error(request, " ".join(e.messages))
 
     else:
         concert_form = ConcertForm(instance=concert)
@@ -791,7 +860,8 @@ def copy_concert(request, concert_id):
     return render(request, 'archive_app/form_concerts_and_events.html', {
         'concert_form': concert_form,
         'concert': concert,
-        'performer_formset': performer_formset
+        'performer_formset': performer_formset,
+        'employees': Employee.objects.all()
 
     })
 
@@ -802,13 +872,19 @@ def copy_play(request, id):
 
     if request.method == 'POST':
         form = PlayForm(request.POST, instance=play)
-        if form.is_valid():
-            new_play = form.save(commit=False)
-            new_play.id = None
-            new_play.save()
-            return redirect('get_play', id=new_play.id)  # Redirect to a view that lists employees
-        else:
-            print(form.errors)
+        try:
+            if form.is_valid():
+                new_play = form.save(commit=False)
+                new_play.id = None
+                new_play.save()
+                return redirect('get_play', id=new_play.id)  # Redirect to a view that lists employees
+            else:
+                print(form.errors)
+                messages.error(request, "There were errors in the form. Please correct them.")
+
+        except ValidationError as e:
+            # Convert error list to a readable format and send it as a message
+            messages.error(request, " ".join(e.messages))
     else:
         form = PlayForm(instance=play)
     return render(request, 'archive_app/form_play.html', {
@@ -833,23 +909,29 @@ def copy_repeat(request, id_play, id_repeat):
         repeat_form = RepeatForm(request.POST, instance=repeat)
         performer_formset = RepeatPerformerFormSet(request.POST, instance=repeat)
 
-        if repeat_form.is_valid() and performer_formset.is_valid():
-            new_repeat = repeat_form.save(commit=False)
-            new_repeat.play = play
-            new_repeat.id = None
-            new_repeat.save()
+        try:
+            if repeat_form.is_valid() and performer_formset.is_valid():
+                new_repeat = repeat_form.save(commit=False)
+                new_repeat.play = play
+                new_repeat.id = None
+                new_repeat.save()
 
-            # performers = performer_formset.save(commit=False)
-            performers = performer_formset.save(commit=False)
-            for performer in performers:
-                performer.repeat = new_repeat
-                performer.save()
+                # performers = performer_formset.save(commit=False)
+                performers = performer_formset.save(commit=False)
+                for performer in performers:
+                    performer.repeat = new_repeat
+                    performer.save()
 
-            return redirect('get_repeat', id_play=play.id, id_repeat=new_repeat.id)  # Redirect after saving
+                return redirect('get_repeat', id_play=play.id, id_repeat=new_repeat.id)  # Redirect after saving
 
-        else:
-            print("Repeat Errors:", repeat_form.errors)
-            print("Performer Formset Errors:", performer_formset.errors)
+            else:
+                print("Repeat Errors:", repeat_form.errors)
+                print("Performer Formset Errors:", performer_formset.errors)
+                messages.error(request, "There were errors in the form. Please correct them.")
+
+        except ValidationError as e:
+            # Convert error list to a readable format and send it as a message
+            messages.error(request, " ".join(e.messages))
     else:
 
         repeat_form = RepeatForm(instance=repeat)
@@ -859,7 +941,8 @@ def copy_repeat(request, id_play, id_repeat):
         'play': play,
         'repeat': repeat,
         'repeat_form': repeat_form,
-        'performer_formset': performer_formset
+        'performer_formset': performer_formset,
+        'employees': Employee.objects.all()
     })
 
 

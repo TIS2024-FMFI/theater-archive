@@ -8,6 +8,14 @@
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
 
+            {% if messages %}
+                <ul>
+                    {% for message in messages %}
+                        <li style="color: red;">{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
             <!-- Názov (Name) -->
             <div class="form-group">
                 <label for="id_name">Názov :</label>
@@ -32,29 +40,6 @@
                 {{ concert_form.description }}
             </div>
 
-{#            <!-- Inscenačný tím (Production Team) -->#}
-{#            <h3>Inscenačný tím :</h3>#}
-{#            <div class="form-group">#}
-{#                <label for="director">Réžia :</label>#}
-{#                {{ director_form.employee_name }}#}
-{#            </div>#}
-{##}
-{#            <div class="form-group">#}
-{#                <label for="scene">Scéna :</label>#}
-{#                {{ scene_form.employee_name }}#}
-{#            </div>#}
-{##}
-{#            <div class="form-group">#}
-{#                <label for="dramaturgy">Dramaturg :</label>#}
-{#                {{ dramaturgy_form.employee_name }}#}
-{#            </div>#}
-
-{#        <div>{{ empty }}</div>#}
-{#                  <input type="text" name="{{ performer_formset.empty_form.job.html_name }}" value="" class="form-control" placeholder="Pozícia účinkujúceho">#}
-
-
-
-
              <!-- Účinkujúci (Performers) -->
             <h3>Účinkujúci :</h3>
             <div class="role_container">
@@ -78,7 +63,14 @@
                         <div class="form-group actor">
                             <label for="actor">Účinkujúci:</label>
                             <input type="text" id="actor" class="actor" placeholder="Účinkujúci" name="{{ form.employee_name.html_name }}"
-                                   value="{{ form.employee_name.value|default:'' }}">
+                                   value="{{ form.employee_name.value|default:'' }}" list="autocomplete">
+
+                            <datalist id="autocomplete">
+                              {% for e in employees %}
+                                  <option value="{{ e.first_name }} {{ e.last_name }}"></option>
+                              {% endfor %}
+                            </datalist>
+
                             <input type="checkbox" name="{{ form.DELETE.html_name }}" class="delete-checkbox" style="display: none;">
                             <button type="button" class="btn" style="visibility: hidden;">&#10006;</button>
                         </div>
