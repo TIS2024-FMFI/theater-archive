@@ -8,7 +8,7 @@
     {% if request.user.is_authenticated and request.user.is_staff %}
     <div class="action-buttons" >
         <a href="{% url 'edit_play' play.id %}" class="btn btn-primary">Upraviť</a>
-        <button class="copy">Vytvoriť kópiu</button>
+        <a href="{% url 'copy_play' play.id %}" class="btn btn-primary">Vytvoriť kópiu</a>
     </div>
     {% endif %}
 

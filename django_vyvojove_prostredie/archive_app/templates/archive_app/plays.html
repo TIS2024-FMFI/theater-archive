@@ -44,8 +44,10 @@
                 <label for="sezona">Sezóna</label>
                 <select id="sezona" class="dropdown" name="season">
                     <option>-</option>
-                    {% for month, year in seasons %}
-                        <option value="{{ month|date:"m"|add:"-"|add:year|date:"Y" }}" {% if selected_season == month|date:"m"|add:"-"|add:year|date:"Y" %}selected{% endif %}>{{ month|date:"F" }} {{ year|date:"Y" }}</option>
+                    {% for season in seasons %}
+                        <option value="{{ season }}" {% if selected_season == season %}selected{% endif %}>
+                            {{ season }}
+                        </option>
                     {% endfor %}
                 </select>
             </div>
@@ -63,7 +65,8 @@
 
             <div class="filter search">
                 <label for="key-term">Kľúčový pojem</label>
-                <input id="key-term" type="text" class="search-input" name="key_term" placeholder="Sem napíš pojem">
+                <input id="key-term" type="text" class="search-input" placeholder="Sem napíš pojem" name="search"
+                        {% if selected_search %} value="{{selected_search}}"{% endif %}>
             </div>
             <div class="filter">
                 <button class="btn" id="search-button" type="submit">Vyhľadať</button>

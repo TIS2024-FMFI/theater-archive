@@ -10,9 +10,10 @@
     <hr>
     {% if request.user.is_authenticated and request.user.is_staff %}
     <div class="action-buttons" >
-        <button class="edit">Upraviť</button>
-        <button class="copy">Vytvoriť kópiu</button>
+        <a href="{% url 'edit_concert' concert.id %}" class="btn btn-primary edit">Upraviť</a>
+        <a href="{% url 'copy_concert' concert.id %}" class="btn btn-secondary copy">Vytvoriť kópiu</a>
     </div>
+
     {% endif %}
     <div class="container">
         <div class="left-section">
@@ -34,9 +35,16 @@
                         {% for p in people %}
                             <br> &emsp;<a href="{% url 'get_employee' p.id %}" class="item">{{ p.first_name }} {{ p.last_name }} </a>
                         {% endfor %}
+                       <br> <br>
                     {% endfor %}
                 </div>
                 <!-- ostatne obsadenie picoviny pridat SEM -->
+            </div>
+            <h2>Program</h2>
+            <div class="program-list">
+                {% for concert_document in program_documents %}
+                    <a href="{{ concert_document.document.file.url }}" download>{{ concert_document.document.file.name }}</a>
+                {% endfor %}
             </div>
         </div>
     </div>

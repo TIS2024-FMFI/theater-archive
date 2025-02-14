@@ -45,7 +45,7 @@ class Document(models.Model):
     document_path = models.FileField(upload_to='documents/')
 
     def __str__(self):
-        return str(self.document_path)
+        return self.document_path.name
 
 
 class PlayDocument(models.Model):
@@ -84,7 +84,6 @@ class Employee(models.Model):
     ensemble = models.ForeignKey('Ensemble', on_delete=models.SET_NULL, null=True)
     employee_type = models.ForeignKey('EmployeeType', on_delete=models.SET_NULL, null=True)
     genre_type = models.ForeignKey('GenreType', on_delete=models.SET_NULL, null=True) #vm44
-    #document = models.ForeignKey('EmployeeDocument', on_delete=models.SET_NULL, null=True, blank=True) #nepotrebujeme
 
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)

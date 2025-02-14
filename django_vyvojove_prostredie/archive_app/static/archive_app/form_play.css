@@ -88,3 +88,9 @@ input[type="file"] {
 input[type="checkbox"] {
     margin-right: 5px;
 }
+
+/* Nove css */
+
+.hidden-file-input {
+    display: none; /* Hide input */
+}

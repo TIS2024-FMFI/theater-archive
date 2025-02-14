@@ -67,7 +67,7 @@ class EmployeeJobForm(forms.ModelForm):
         new_job_name = cleaned_data.get("new_job_name")
 
         if not job and not new_job_name:
-            raise forms.ValidationError("Please select an existing job or enter a new one.")
+            raise forms.ValidationError("Prosísm vyberte zamestnanie alebo zadajte nové.")
 
         if new_job_name:
             job, created = Job.objects.get_or_create(name=new_job_name)
@@ -173,7 +173,7 @@ class RepeatForm(forms.ModelForm):
         new_room = cleaned_data.get("new_room")
 
         if not room and not new_room:
-            raise forms.ValidationError("Please select an existing room or enter a new one.")
+            raise forms.ValidationError("Prosím vybertie miesto alebo zadajte nové.")
 
         if new_room:
             room, created = Room.objects.get_or_create(name=new_room)
@@ -203,13 +203,13 @@ class RepeatPerformerForm(forms.ModelForm):
 
         name_parts = employee_name.split()
         if len(name_parts) < 2:
-            raise forms.ValidationError("Please enter both first and last name.")
+            raise forms.ValidationError("Zadajte korektné meno všetkých umelcov.")
 
         first_name, last_name = name_parts[0], " ".join(name_parts[1:])
         try:
             employee = Employee.objects.get(first_name=first_name, last_name=last_name)
         except Employee.DoesNotExist:
-            raise forms.ValidationError("This employee does not exist. Please select an existing employee.")
+            raise forms.ValidationError("Umelec neexistuje. Zadajte korektné meno všetkých umelcov.")
 
 
         job, created = Job.objects.get_or_create(name=job_name) if job_name else (None, False)
@@ -234,3 +234,78 @@ class RepeatPerformerForm(forms.ModelForm):
 
         return repeat_performer
 
+class ConcertForm(forms.ModelForm):
+    concert_type = forms.ModelChoiceField(
+        queryset=ConcertType.objects.all(),
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    class Meta:
+        model = Concert
+        fields = "__all__"
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Názov koncertu / podujatia'}),
+            'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 5, 'placeholder': 'Sem píšte popis...'}),
+        }
+
+
+class ConcertPerformerForm(forms.ModelForm): #ucinkujuci
+    employee_name = forms.CharField(
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Umelec',
+            'data-url': "autocomplete/"
+        })
+    )
+
+    job = forms.CharField(
+        required=False,  # Allow entering a custom job
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Pozícia účinkujúceho'})
+    )
+
+    class Meta:
+        model = ConcertPerformer
+        fields = ['employee_name', 'job']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            if self.instance.employee:
+                self.fields[
+                    'employee_name'].initial = f"{self.instance.employee.first_name} {self.instance.employee.last_name}"
+
+
+    def save(self, commit=True):
+        concert_performer = super().save(commit=False)
+        employee_name  = self.cleaned_data['employee_name'].strip()
+        job = self.cleaned_data.get('job', '').strip()
+
+        name_parts = employee_name.split()
+        if len(name_parts) < 2:
+            raise forms.ValidationError("Zadajte korektné meno všetkých účinkujúcich.")
+
+        first_name, last_name = name_parts[0], " ".join(name_parts[1:])
+        print(first_name, last_name)
+        try:
+            employee = Employee.objects.get(first_name=first_name, last_name=last_name)
+            print("Employee, job:", employee, job)
+        except Employee.DoesNotExist:
+            raise forms.ValidationError("Účinkujúci neexistuje. Zadajte korektné meno všetkých účinkujúcich.")
+
+
+        concert_performer.employee = employee
+        concert_performer.job = job
+        if commit:
+            concert_performer.save()
+
+        return concert_performer
+
+
+class DocumentForm(forms.ModelForm):
+    file = forms.FileField(required=False)
+
+    class Meta:
+        model = Document
+        fields = ['document_path']

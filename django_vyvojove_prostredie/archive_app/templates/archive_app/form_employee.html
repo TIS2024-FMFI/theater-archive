@@ -233,11 +233,11 @@
                         newJobField.style.display = "none";
                 }
 
-                {#let startDateField = jobEntry.querySelector("input[name*='date_start']");#}
-                {#let endDateField = jobEntry.querySelector("input[name*='date_end']");#}
+                //{#let startDateField = jobEntry.querySelector("input[name*='date_start']");#}
+                //{#let endDateField = jobEntry.querySelector("input[name*='date_end']");#}
 
-                {#if (startDateField) startDateField.value = "";#}
-                {#if (endDateField) endDateField.value = "";#}
+                //{#if (startDateField) startDateField.value = "";#}
+                //{#if (endDateField) endDateField.value = "";#}
 
                 // handle remove job button
                 let deleteField = jobEntry.querySelector("input[type='checkbox'][name*='DELETE']");
@@ -247,9 +247,9 @@
                         console.log(document.querySelectorAll("#jobContainer > .form-row:not([style*='display: none'])").length)
                         if ( document.querySelectorAll("#jobContainer > .form-row:not([style*='display: none'])").length > 1) {
                             deleteField.checked = true;
-                            {#jobEntry.remove();#}
+                            //{#jobEntry.remove();#}
                             jobEntry.style.display = "none";
-                            {#totalForms.value = document.querySelectorAll("#jobContainer > .form-row").length;#}
+                            //{#totalForms.value = document.querySelectorAll("#jobContainer > .form-row").length;#}
                         }
                     });
                 }
