@@ -41,6 +41,4 @@ urlpatterns = [
     path('concerts_and_events/edit/<int:concert_id>/', views.edit_concert, name='edit_concert'),
     path('concerts_and_events/copy/<int:concert_id>/', views.copy_concert, name='copy_concert'),
 
-    path('autocomplete/', views.autocomplete, name='autocomplete')
-
 ]

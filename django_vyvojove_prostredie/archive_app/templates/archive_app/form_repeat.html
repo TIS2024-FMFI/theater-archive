@@ -45,7 +45,6 @@
                     {% endfor %}
                 </select>
             </div>
-
             <!-- Cast Section -->
             <h3>Obsadenie</h3>
             <div class="role_container">
@@ -64,7 +63,14 @@
 
                     <div class="form-group actor">
                         <label for="actor">Herec / Herečka:</label>
-                        <input type="text" id="actor" class="actor" placeholder="Umelec" name="{{ form.employee.html_name }}" value="{{ form.instance.employee_job.employee|default:'' }}">
+                        <input type="text" id="actor" class="actor" placeholder="Umelec" list="autocomplete" name="{{ form.employee.html_name }}" value="{{ form.instance.employee_job.employee|default:'' }}">
+
+                        <datalist id="autocomplete">
+                          {% for e in employees %}
+                              <option value="{{ e.first_name }} {{ e.last_name }}"></option>
+                          {% endfor %}
+                        </datalist>
+
                         <input type="checkbox" name="{{ form.DELETE.html_name }}" class="delete-checkbox" style="display: none;">
                         <button type="button" class="btn" style="visibility: hidden;">&#10006;</button>
                     </div>
