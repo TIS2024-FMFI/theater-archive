@@ -7,7 +7,7 @@
         <h2>{% if concert and concert.id %}Upraviť{% else %}Pridať{% endif %} koncert/podujatie</h2>
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
-            
+
             <!-- Názov (Name) -->
             <div class="form-group">
                 <label for="id_name">Názov :</label>
@@ -32,135 +32,304 @@
                 {{ concert_form.description }}
             </div>
 
-            <!-- Inscenačný tím (Production Team) -->
-            <h3>Inscenačný tím :</h3>
-            <div class="form-group">
-                <label for="director">Réžia :</label>
-                {{ director_form.employee }}
-            </div>
+{#            <!-- Inscenačný tím (Production Team) -->#}
+{#            <h3>Inscenačný tím :</h3>#}
+{#            <div class="form-group">#}
+{#                <label for="director">Réžia :</label>#}
+{#                {{ director_form.employee_name }}#}
+{#            </div>#}
+{##}
+{#            <div class="form-group">#}
+{#                <label for="scene">Scéna :</label>#}
+{#                {{ scene_form.employee_name }}#}
+{#            </div>#}
+{##}
+{#            <div class="form-group">#}
+{#                <label for="dramaturgy">Dramaturg :</label>#}
+{#                {{ dramaturgy_form.employee_name }}#}
+{#            </div>#}
 
-            <div class="form-group">
-                <label for="scene">Scéna :</label>
-                {{ scene_form.employee }}
-            </div>
+{#        <div>{{ empty }}</div>#}
+{#                  <input type="text" name="{{ performer_formset.empty_form.job.html_name }}" value="" class="form-control" placeholder="Pozícia účinkujúceho">#}
 
-            <div class="form-group">
-                <label for="dramaturgy">Dramaturg :</label>
-                {{ dramaturgy_form.employee }}
-            </div>
 
+
+
+             <!-- Účinkujúci (Performers) -->
+            <h3>Účinkujúci :</h3>
+            <div class="role_container">
+
+                {{ performer_formset.management_form }}
+                {% for form in performer_formset %}
+
+{#                    {% if form.instance.job|lower not in "réžia,scéna,dramaturgia" or not form.instance.job and forloop.counter0 == 0 %}#}
+                    <div id="role_entry" class="role_entry">
+                        {{ form.id.as_hidden }}
+
+
+                        <div class="form-group">
+                            <label for="role">Pozícia účinkujúceho:</label>
+                            <input type="text" id="role" name="{{ form.job.html_name }}" value="{{ form.instance.job|default:'' }}"
+                                   class="form-control" placeholder="Pozícia účinkujúceho">
+                            <button type="button" class="btn remove-role">&#10006;</button>
+                            <input type="checkbox" name="{{ form.DELETE.html_name }}" class="delete-checkbox" style="display: none;">
+                        </div>
+
+                        <div class="form-group actor">
+                            <label for="actor">Účinkujúci:</label>
+                            <input type="text" id="actor" class="actor" placeholder="Účinkujúci" name="{{ form.employee_name.html_name }}"
+                                   value="{{ form.employee_name.value|default:'' }}">
+                            <input type="checkbox" name="{{ form.DELETE.html_name }}" class="delete-checkbox" style="display: none;">
+                            <button type="button" class="btn" style="visibility: hidden;">&#10006;</button>
+                        </div>
+
+                        <div class="form-group">
+                            <label></label>
+                            <button type="button" class="add-btn add-actor" id="add_actor">&#10010;</button>
+                        </div>
+                    </div>
+{#                    {% endif %}#}
+                {% endfor %}
+                </div>
+            <button type="button" class="add-btn role" id="add_role">&#10010; pridať postavu</button>
+
+{#             Prílohy (Attachments)#}
+{#            <h3>Prílohy:</h3>#}
+{#            <div class="form-group">#}
+{#                <label for="program">Program:</label>#}
+{#                <input type="file" name="program_files" class="form-control">#}
+{#            </div>#}
+{#            <div class="form-group">#}
+{#                <label for="photos">Fotografie:</label>#}
+{#                <input type="file" name="photo_files" class="form-control" multiple>#}
+{#            </div>#}
+            <hr>
             <button type="submit" class="btn btn-primary">Uložiť</button>
         </form>
     </div>
+
+
+<script>
+
+// File Upload Preview
+    document.querySelectorAll('.file-input').forEach((input) => {
+        input.addEventListener('change', function () {
+            let file = this.files[0];
+            let previewElement = document.getElementById('file-preview-' + this.id.split('-')[2]);
+
+            if (file) {
+                if (file.type.startsWith('image/')) {
+                    let reader = new FileReader();
+                    reader.onload = function (e) {
+                        previewElement.src = e.target.result;
+                        previewElement.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    previewElement.style.display = 'none';
+                }
+            }
+        });
+    });
+
+    document.addEventListener("DOMContentLoaded", function () {
+        let jobContainer = document.querySelector(".role_container");
+        let addButton = document.querySelector('.role');
+        let totalForms = document.querySelector("#id_concertperformer_set-TOTAL_FORMS");
+
+        totalForms.value = document.querySelectorAll(".role_container > .role_entry").length;
+
+        function attachListenersToExistingForms() {
+            document.querySelectorAll(".role_entry").forEach((entry, index) => {
+                let jobInput = entry.querySelector("input[name*='job']");
+                if (jobInput && jobInput.value.trim() !== "") {
+                    jobInput.value = jobInput.value.trim(); // Ensure value remains
+                }
+
+                let actorInputs = entry.querySelectorAll("input[name*='employee_name']");
+                actorInputs.forEach((actorInput) => {
+                    if (actorInput.value.trim() !== "") {
+                        actorInput.value = actorInput.value.trim();
+                    }
+                });
+
+                let removeButton = entry.querySelector(".remove-role");
+                let deleteField = entry.querySelector("input[name*='DELETE']");
+                if (removeButton) {
+                    removeButton.addEventListener("click", function () {
+                        if ( document.querySelectorAll(".role_container > .role_entry:not([style*='display: none'])").length > 1) {
+                            deleteField.checked = true;
+                            console.log(deleteField.name)
+                            //{#this.closest(".role_entry").remove();#}
+                            this.closest(".role_entry").style.display = "none";
+                            totalForms.value = document.querySelectorAll(".role_container > .role_entry").length;
+                        } else {
+                            alert("At least one role must remain.");
+                        }
+                    });
+                }
+
+            });
+        }
+        attachListenersToExistingForms();
+
+        // ✅ Function to Add an Actor (New Formset Instance)
+        function addActorButton(entry) {
+            let formCount = parseInt(totalForms.value);
+            let actorSection = document.createElement("div");
+            actorSection.classList.add("form-group", "actor");
+
+            let label = document.createElement("label");
+
+            let newActor = document.createElement("input");
+            newActor.type = "text";
+            newActor.placeholder = "Umelec";
+
+            let jobInput = entry.querySelector("input[name*='job']");
+            let jobName = jobInput ? jobInput.value : "";
+            console.log(jobInput)
+
+            let hiddenJobInput = document.createElement("input");
+            hiddenJobInput.type = "hidden";
+            hiddenJobInput.name = `concertperformer_set-${formCount}-job`;
+            hiddenJobInput.value = jobName;
+
+            newActor.name = `concertperformer_set-${formCount}-employee_name`;
+
+
+            let removeBtn = document.createElement("button");
+            removeBtn.type = "button";
+            removeBtn.classList.add("remove-btn", "btn");
+            removeBtn.textContent = "✖";
+
+            removeBtn.addEventListener("click", function () {
+                actorSection.remove();
+                totalForms.value = document.querySelectorAll(".role_container .actor input").length;
+            });
+
+            actorSection.appendChild(label);
+            actorSection.appendChild(newActor);
+            actorSection.appendChild(hiddenJobInput);
+            actorSection.appendChild(removeBtn);
+
+            entry.querySelector(".actor").after(actorSection);
+            totalForms.value = formCount + 1; // ✅ Increase formset count
+        }
+
+        // ✅ Add Actor Button Event Listener (Per Role)
+        document.querySelectorAll(".add-actor").forEach(button => {
+            button.addEventListener("click", function () {
+                addActorButton(this.closest(".role_entry"));
+            });
+        });
+
+
+        // ✅ Function to Add a New Role (RepeatPerformer)
+        if (addButton) {
+            addButton.addEventListener("click", function () {
+                let formCount = parseInt(totalForms.value);
+                let template = document.getElementById("role_entry");
+
+                if (!template) {
+                    console.error("Error: 'role_entry' element not found.");
+                    return;
+                }
+
+                let newEntry = template.cloneNode(true);
+                newEntry.removeAttribute("id"); // Remove duplicate ID
+
+                let actors = newEntry.querySelectorAll(".form-group.actor");
+                actors.forEach((actor, index) => {
+                    if (index > 0) {
+                        actor.remove();
+                    }
+                });
+
+                // ✅ Update form field names for Django formset
+                newEntry.innerHTML = newEntry.innerHTML.replace(/-\d+-/g, `-${formCount}-`);
+
+                // ✅ Clear input values (Only for new roles)
+                newEntry.querySelectorAll("input").forEach(input => {
+                    if (input.type === "text") {
+                        input.value = "";
+                    }
+                });
+
+                let removeButton = newEntry.querySelector(".remove-role");
+                let deleteField = newEntry.querySelector("input[name*='DELETE']");
+                console.log("264: "+deleteField)
+                if (removeButton) {
+                    removeButton.addEventListener("click", function () {
+                        if (totalForms.value > 1) {
+                            deleteField.checked = true;
+                            //{#this.closest(".role_entry").remove();#}
+                            newEntry.style.display = "none";
+                            totalForms.value = document.querySelectorAll(".role_container > .role_entry").length;
+                        }
+                    });
+                }
+
+                newEntry.querySelector(".add-actor").addEventListener("click", function () {
+                    addActorButton(newEntry);
+                });
+
+                // ✅ Append the new job entry inside the job container
+                jobContainer.appendChild(newEntry);
+                totalForms.value = formCount + 1;
+            });
+        }
+
+
+    });
+
+
+</script>
+
+
 </section>
 {% endblock %}
 
 
-
-
-
-
-
-
-<!--             
-            Inscenačný tím (Production Team)
-            <h3>Inscenačný tím :</h3>
-            <div class="form-group">
-                <label for="director">Réžia :</label>
-                {{ director_form.employee }}
-            </div>
-
-            <div class="form-group">
-                <label for="scene">Scéna :</label>
-                {{ scene_form.employee }}
-            </div>
-
-            <div class="form-group">
-                <label for="dramaturgy">Dramaturg :</label>
-                {{ dramaturgy_form.employee }}
-            </div>
-
-             Účinkujúci (Performers)
-             <h3>Účinkujúci :</h3>
-             <div id="performer-container">
-                 {% for performer_form in performer_forms %}
-                     <div class="performer-form">
-                         <div class="form-group">
-                             <label for="{{ performer_form.prefix }}-job">Zaradenie :</label>
-                             {{ performer_form.job }}
-                         </div>
-                         <div class="form-group">
-                             <label for="{{ performer_form.prefix }}-employee">Umelec :</label>
-                             {{ performer_form.employee }}
-                         </div>
-                         <button type="button" class="remove-performer btn">✖</button>
-                     </div>
-                 {% endfor %}
-             </div>
-             <button type="button" class="btn" id="add-performer">&#10010;</button>
-             <input type="hidden" name="performer_count" id="performer_count" value="{{ performer_forms|length }}">
-             
- 
-             Prílohy (Attachments)
-            <h3>Prílohy:</h3>
-            <div class="form-group">
-                <label for="program">Program:</label>
-                <input type="file" name="program_files" class="form-control">
-            </div>
-            <div class="form-group">
-                <label for="photos">Fotografie:</label>
-                <input type="file" name="photo_files" class="form-control" multiple>
-            </div>
-
-            <button type="submit" class="btn">Uložiť</button>
-        </form>
-    </div>
-</section>
-
-
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        let performerCount = JSON.parse(document.getElementById('performerCount').textContent);
-        const performerContainer = document.getElementById('performer-container');
-        const addPerformerButton = document.getElementById('add-performer');
-        const performerCountInput = document.getElementById('performer_count');
-
-        addPerformerButton.addEventListener('click', function () {
-            const newPerformerForm = document.createElement('div');
-            newPerformerForm.classList.add('performer-form');
-            newPerformerForm.innerHTML = `
-                <div class="form-group">
-                    <label for="id_${performerCount}-job">Zaradenie :</label>
-                    <select name="${performerCount}-job" class="form-control">
-                        {% for job in jobs %}
-                            <option value="{{ job.id }}">{{ job.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="id_${performerCount}-employee">Umelec :</label>
-                    <select name="${performerCount}-employee" class="form-control" autocomplete="off">
-                        {% for employee in employees %}
-                            <option value="{{ employee.id }}">{{ employee.first_name }} {{ employee.last_name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <button type="button" class="remove-performer btn">✖</button>
-            `;
-            performerContainer.appendChild(newPerformerForm);
-            performerCount++;
-            performerCountInput.value = performerCount;
-        });
-
-        performerContainer.addEventListener('click', function (e) {
-            if (e.target.classList.contains('remove-performer')) {
-                e.target.parentElement.remove();
-                performerCount--;
-                performerCountInput.value = performerCount;
-            }
-        });
-    });
-</script> -->
-
-
-
+{#<script>#}
+{#    document.addEventListener('DOMContentLoaded', function () {#}
+{#        let performerCount = JSON.parse(document.getElementById('performerCount').textContent);#}
+{#        const performerContainer = document.getElementById('performer-container');#}
+{#        const addPerformerButton = document.getElementById('add-performer');#}
+{#        const performerCountInput = document.getElementById('performer_count');#}
+{##}
+{#        addPerformerButton.addEventListener('click', function () {#}
+{#            const newPerformerForm = document.createElement('div');#}
+{#            newPerformerForm.classList.add('performer-form');#}
+{#            newPerformerForm.innerHTML = `#}
+{#                <div class="form-group">#}
+{#                    <label for="id_${performerCount}-job">Zaradenie :</label>#}
+{#                    <select name="${performerCount}-job" class="form-control">#}
+{#                        {% for job in jobs %}#}
+{#                            <option value="{{ job.id }}">{{ job.name }}</option>#}
+{#                        {% endfor %}#}
+{#                    </select>#}
+{#                </div>#}
+{#                <div class="form-group">#}
+{#                    <label for="id_${performerCount}-employee">Umelec :</label>#}
+{#                    <select name="${performerCount}-employee" class="form-control" autocomplete="off">#}
+{#                        {% for employee in employees %}#}
+{#                            <option value="{{ employee.id }}">{{ employee.first_name }} {{ employee.last_name }}</option>#}
+{#                        {% endfor %}#}
+{#                    </select>#}
+{#                </div>#}
+{#                <button type="button" class="remove-performer btn">✖</button>#}
+{#            `;#}
+{#            performerContainer.appendChild(newPerformerForm);#}
+{#            performerCount++;#}
+{#            performerCountInput.value = performerCount;#}
+{#        });#}
+{##}
+{#        performerContainer.addEventListener('click', function (e) {#}
+{#            if (e.target.classList.contains('remove-performer')) {#}
+{#                e.target.parentElement.remove();#}
+{#                performerCount--;#}
+{#                performerCountInput.value = performerCount;#}
+{#            }#}
+{#        });#}
+{#    });#}
+{#</script>#}

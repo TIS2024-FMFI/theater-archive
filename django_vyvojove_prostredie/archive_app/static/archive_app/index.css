@@ -67,23 +67,24 @@
 
 
 .header .login-btn {
-    background:  #666;
+    background: #8b8a8a;
     color: #222;
     border: none;
     padding: 5px 7px;
     font-size: 0.9rem;
     font-weight: bold;
     cursor: pointer;
-    border-radius: 5px;
+    border-radius: 3px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     transition: all 0.3s ease;
     margin: 5px;
+    text-decoration: none;
 
 }
 
 .header .login-btn:hover {
-    background: #999;
-    color: #444;
+    background: #ffffff;
+    color: #000000;
     transform: translateY(-2px);
     box-shadow: 0 6px 10px rgba(0, 0, 0, 0);
 }

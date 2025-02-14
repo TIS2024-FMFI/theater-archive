@@ -1,3 +1,6 @@
+from operator import truediv
+
+from django.forms.formsets import TOTAL_FORM_COUNT, INITIAL_FORM_COUNT
 from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
@@ -15,12 +18,22 @@ from itertools import chain
 from .forms import *
 from django.db.models.functions import TruncMonth, TruncYear
 from django.db.models import Q
+from datetime import datetime
 
 
 def get_all(model: Type[models.Model], filters: Optional[Dict[str, Any]] = None):
     if filters is None:
         filters = {}
     return model.objects.filter(**filters)
+
+def autocomplete(request, model):
+    if request.GET.get('q'):
+        q = request.GET['q']
+        data = model.objects.using('legacy').filter(email__startswith=q).values_list('email',flat=True)
+        json = list(data)
+        return JsonResponse(json, safe=False)
+    else:
+        HttpResponse("No cookies")
 
 def main_page(request):
     return render(request, 'archive_app/index.html')
@@ -31,7 +44,8 @@ def list_plays(request):
     season = request.GET.get('season')
     publicity = request.GET.get('publicity')
     sort_order = request.GET.get('sort_order')
-    
+    search = request.GET.get('search')
+
     plays = Play.objects.all()
     
     if genre and genre != "-":
@@ -41,8 +55,18 @@ def list_plays(request):
         plays = plays.filter(ensemble_id=ensemble)
     
     if season and season != "-":
-        month, year = season.split('-')
-        plays = plays.filter(repeat__date__month=month, repeat__date__year=year)
+        # month, year = season.split('-')
+        # plays = plays.filter(repeat__date__month=month, repeat__date__year=year)
+        start_year, end_year = map(int, season.split('/'))
+        start_date = f"{start_year}-07-01"
+        end_date = f"{end_year}-06-30"
+        plays = plays.filter(repeat__date__range=[start_date, end_date]).distinct()
+
+
+    if search and search != "":
+        plays = plays.filter(Q(title__icontains=search) |
+                             Q(author_first_name__icontains=search) |
+                             Q(author_last_name__icontains=search))
 
     if not request.user.is_authenticated:
         plays = plays.filter(publicity=True)  # only public employees if not logged in
@@ -58,8 +82,11 @@ def list_plays(request):
     
     genres = GenreType.objects.all()
     ensembles = Ensemble.objects.all()
-    seasons = Repeat.objects.annotate(month=TruncMonth('date'), year=TruncYear('date')).values_list('month', 'year').distinct()
-    
+    # seasons = Repeat.objects.annotate(month=TruncMonth('date'), year=TruncYear('date')).values_list('month', 'year').distinct()
+    start_year = 1920
+    current_year = datetime.now().year
+    seasons = [(f"{year}/{year + 1}") for year in range(start_year, current_year)]
+
     return render(request, 'archive_app/plays.html', {
         'plays': plays,
         'genres': genres,
@@ -70,13 +97,15 @@ def list_plays(request):
         'selected_season': season,
         'selected_publicity': publicity,
         'selected_sort_order': sort_order,
+        'selected_search': search,
     })
 
 def list_concerts_and_events(request):
     publicity = request.GET.get('publicity')
     concert_type_id = request.GET.get('concert_type')
     sort_order = request.GET.get('sort_order')
-    
+    search = request.GET.get('search')
+
     concerts = Concert.objects.all()
 
 
@@ -89,7 +118,10 @@ def list_concerts_and_events(request):
     
     if concert_type_id:
         concerts = concerts.filter(concert_type_id=concert_type_id)
-    
+
+    if search and search != "":
+        concerts = concerts.filter(name__icontains=search)
+
     if sort_order == "asc":
         concerts = concerts.order_by('name')
     elif sort_order == "desc":
@@ -103,6 +135,7 @@ def list_concerts_and_events(request):
         'selected_publicity': publicity,
         'selected_concert_type': concert_type_id,
         'selected_sort_order': sort_order,
+        'selected_search': search,
     })
     #concerts = get_all(Concert)
     #return render(request, 'archive_app/concerts.html', {'concerts':concerts})
@@ -110,7 +143,8 @@ def list_concerts_and_events(request):
 def list_ensembles(request):
     publicity = request.GET.get('publicity')
     sort_order = request.GET.get('sort_order')
-    
+    search = request.GET.get('search')
+
     ensembles = Ensemble.objects.all()
 
     if not request.user.is_authenticated:
@@ -119,7 +153,10 @@ def list_ensembles(request):
         ensembles = ensembles.filter(publicity=True)
     elif publicity == "false":
         ensembles = ensembles.filter(publicity=False)
-    
+
+    if search and search != "":
+        ensembles = ensembles.filter(name__icontains=search)
+
     if sort_order == "asc":
         ensembles = ensembles.order_by('name')
     elif sort_order == "desc":
@@ -129,6 +166,7 @@ def list_ensembles(request):
         'ensembles': ensembles,
         'selected_publicity': publicity,
         'selected_sort_order': sort_order,
+        'selected_search': search,
     })
     
     #ensembles = get_all(Ensemble)
@@ -140,7 +178,9 @@ def list_employees(request):
     last_name = request.GET.get('last_name')
     role = request.GET.get('role')
     sort_order = request.GET.get('sort_order')
-    
+
+    search = request.GET.get('search')
+
     employees = Employee.objects.all()
     
     if not request.user.is_authenticated:
@@ -159,7 +199,10 @@ def list_employees(request):
     
     if role and role != "-":
         employees = employees.filter(employeejob__job__name=role)
-    
+
+    if search and search != "":
+        employees = employees.filter(Q(first_name__icontains=search) | Q(last_name__icontains=search))
+
     if sort_order == "asc":
         employees = employees.order_by('last_name')
     elif sort_order == "desc":
@@ -179,6 +222,7 @@ def list_employees(request):
         'selected_last_name': last_name,
         'selected_role': role,
         'selected_sort_order': sort_order,
+        'selected_search': search
     })
 
 
@@ -241,47 +285,38 @@ def form_repeats(request, id):
     })
 
 def form_concerts_and_events(request):
-    if request.method == 'POST':
-        concert_form = ConcertForm(request.POST)
-        director_form = ConcertStagingTeamForm(request.POST, prefix='director')
-        scene_form = ConcertStagingTeamForm(request.POST, prefix='scene')
-        dramaturgy_form = ConcertStagingTeamForm(request.POST, prefix='dramaturgy')
+    ConcertPerformerFormSet = inlineformset_factory(
+        Concert, ConcertPerformer,
+        form=ConcertPerformerForm,
+        extra=1,
+        can_delete=True
+    )
 
-        if concert_form.is_valid() and director_form.is_valid() and scene_form.is_valid() and dramaturgy_form.is_valid():
+    if request.method == 'POST':
+        print("POST data:", request.POST)
+        concert_form = ConcertForm(request.POST)
+        performer_formset = ConcertPerformerFormSet(request.POST)
+
+        if (concert_form.is_valid() and performer_formset.is_valid()):
             concert = concert_form.save()
 
-            director = director_form.save(commit=False)
-            director.concert = concert
-            director.job = "Réžia"
-            director.save()
+            performers = performer_formset.save(commit=False)
+            for performer in performers:
+                performer.concert = concert
+                performer.save()  # This automatically assigns EmployeeJob
 
-            scene = scene_form.save(commit=False)
-            scene.concert = concert
-            scene.job = "Scéna"
-            scene.save()
+            return redirect('get_concert_or_event', id_concert=concert.id)  # Redirect to a list of concerts or another appropriate view
 
-            dramaturgy = dramaturgy_form.save(commit=False)
-            dramaturgy.concert = concert
-            dramaturgy.job = "Dramaturg"
-            dramaturgy.save()
-
-            return redirect('list_concerts_and_events')  # Redirect to a list of concerts or another appropriate view
         else:
-            print(concert_form.errors)  # Print form errors for debugging
-            print(director_form.errors)
-            print(scene_form.errors)
-            print(dramaturgy_form.errors)
+            print(concert_form.errors)
+            print(performer_formset.errors)
     else:
         concert_form = ConcertForm()
-        director_form = ConcertStagingTeamForm(prefix='director')
-        scene_form = ConcertStagingTeamForm(prefix='scene')
-        dramaturgy_form = ConcertStagingTeamForm(prefix='dramaturgy')
+        performer_formset = ConcertPerformerFormSet()
 
     return render(request, 'archive_app/form_concerts_and_events.html', {
         'concert_form': concert_form,
-        'director_form': director_form,
-        'scene_form': scene_form,
-        'dramaturgy_form': dramaturgy_form,
+        'performer_formset': performer_formset
     })
 
 def form_ensembles(request):
@@ -294,6 +329,7 @@ def form_ensembles(request):
         form = EnsembleForm()
     
     return render(request, 'archive_app/form_ensemble.html', {'form': form})
+    #return render(request,'archive_app/form_ensemble.html')
 
 
 def form_employees(request): #virtualmachine44
@@ -670,118 +706,162 @@ def edit_repeat(request, id_play, id_repeat):
         'performer_formset': performer_formset
     })
 
+
 def edit_concert(request, concert_id):
+    ConcertPerformerFormSet = inlineformset_factory(
+        Concert, ConcertPerformer,
+        form=ConcertPerformerForm,
+        extra=1,
+        can_delete=True
+    )
     concert = get_object_or_404(Concert, id=concert_id)
 
-    # Fetch existing ConcertPerformer instances for the roles
-    director = ConcertPerformer.objects.filter(concert=concert, job="Réžia").first()
-    scene = ConcertPerformer.objects.filter(concert=concert, job="Scéna").first()
-    dramaturgy = ConcertPerformer.objects.filter(concert=concert, job="Dramaturg").first()
-    
-
     if request.method == 'POST':
+        print(request.POST)
         concert_form = ConcertForm(request.POST, instance=concert)
-        director_form = ConcertStagingTeamForm(request.POST, instance=director, prefix='director')
-        scene_form = ConcertStagingTeamForm(request.POST, instance=scene, prefix='scene')
-        dramaturgy_form = ConcertStagingTeamForm(request.POST, instance=dramaturgy, prefix='dramaturgy')
+        performer_formset = ConcertPerformerFormSet(request.POST, instance=concert)
 
-        if concert_form.is_valid() and director_form.is_valid() and scene_form.is_valid() and dramaturgy_form.is_valid():
+        if concert_form.is_valid() and performer_formset.is_valid():
             concert = concert_form.save()
 
-            director = director_form.save(commit=False)
-            director.concert = concert
-            director.job = "Réžia"
-            director.save()
-
-            scene = scene_form.save(commit=False)
-            scene.concert = concert
-            scene.job = "Scéna"
-            scene.save()
-
-            dramaturgy = dramaturgy_form.save(commit=False)
-            dramaturgy.concert = concert
-            dramaturgy.job = "Dramaturg"
-            dramaturgy.save()
+            for performer in performer_formset:
+                if performer.cleaned_data.get("DELETE", False):
+                    if performer.instance.pk:
+                        performer.instance.delete()
+                else:
+                    if performer.cleaned_data.get('employee_name') and performer.cleaned_data.get('job'):
+                        performer.concert = concert
+                        performer.save()  # This automatically assigns EmployeeJob
 
             return redirect('get_concert_or_event', id_concert=concert.id)
         else:
-            print(concert_form.errors)  # Print form errors for debugging
-            print(director_form.errors)
-            print(scene_form.errors)
-            print(dramaturgy_form.errors)
+            print(concert_form.errors)
+            print(performer_formset.errors)
 
     else:
         concert_form = ConcertForm(instance=concert)
-        director_form = ConcertStagingTeamForm(instance=director, prefix='director')
-        scene_form = ConcertStagingTeamForm(instance=scene, prefix='scene')
-        dramaturgy_form = ConcertStagingTeamForm(instance=dramaturgy, prefix='dramaturgy')
+        performer_formset = ConcertPerformerFormSet(instance=concert)
+
+
 
     return render(request, 'archive_app/form_concerts_and_events.html', {
         'concert_form': concert_form,
-        'director_form': director_form,
-        'scene_form': scene_form,
-        'dramaturgy_form': dramaturgy_form,
         'concert': concert,
+        'performer_formset': performer_formset
     })
 
+
 def copy_concert(request, concert_id):
+    ConcertPerformerFormSet = inlineformset_factory(
+        Concert, ConcertPerformer,
+        form=ConcertPerformerForm,
+        extra=1,
+        can_delete=True
+    )
+
     concert = get_object_or_404(Concert, id=concert_id)
 
-    director = ConcertPerformer.objects.filter(concert=concert, job="Réžia").first()
-    scene = ConcertPerformer.objects.filter(concert=concert, job="Scéna").first()
-    dramaturgy = ConcertPerformer.objects.filter(concert=concert, job="Dramaturg").first()
-
     if request.method == 'POST':
+        print(request.POST)
         concert_form = ConcertForm(request.POST)
-        director_form = ConcertStagingTeamForm(request.POST, instance=director, prefix='director')
-        scene_form = ConcertStagingTeamForm(request.POST, instance=scene, prefix='scene')
-        dramaturgy_form = ConcertStagingTeamForm(request.POST, instance=dramaturgy, prefix='dramaturgy')
+        performer_formset = ConcertPerformerFormSet(request.POST, instance=concert)
 
-        if concert_form.is_valid() and director_form.is_valid() and scene_form.is_valid() and dramaturgy_form.is_valid():
+        if concert_form.is_valid() and performer_formset.is_valid():
             new_concert = concert_form.save(commit=False)
             new_concert.id = None  # Ensure a new entry is created
             new_concert.save()
 
-            # Save director
-            director = director_form.save(commit=False)
-            director.concert = new_concert
-            director.job = "Réžia"
-            director.save()
+            performers = performer_formset.save(commit=False)
+            for performer in performers:
+                performer.concert = new_concert
+                performer.save()  # This automatically assigns EmployeeJob
 
-            # Save scene
-            scene = scene_form.save(commit=False)
-            scene.concert = new_concert
-            scene.job = "Scéna"
-            scene.save()
-
-            # Save dramaturgy
-            dramaturgy = dramaturgy_form.save(commit=False)
-            dramaturgy.concert = new_concert
-            dramaturgy.job = "Dramaturg"
-            dramaturgy.save()
-
-            return redirect('get_concert_or_event', id_concert=new_concert.id)  # Redirect to the new concert detail view after saving
+            return redirect('get_concert_or_event',
+                            id_concert=new_concert.id)  # Redirect to the new concert detail view after saving
         else:
-            print(concert_form.errors)  # Print form errors for debugging
-            print(director_form.errors)
-            print(scene_form.errors)
-            print(dramaturgy_form.errors)
+            print(concert_form.errors)
+            print(performer_formset.errors)
 
     else:
         concert_form = ConcertForm(instance=concert)
         concert_form.fields['name'].initial = ''
-        director_form = ConcertStagingTeamForm(instance=director, prefix='director')
-        scene_form = ConcertStagingTeamForm(instance=scene, prefix='scene')
-        dramaturgy_form = ConcertStagingTeamForm(instance=dramaturgy, prefix='dramaturgy')
+        performer_formset = ConcertPerformerFormSet(instance=concert)
+
 
     return render(request, 'archive_app/form_concerts_and_events.html', {
         'concert_form': concert_form,
-        'director_form': director_form,
-        'scene_form': scene_form,
-        'dramaturgy_form': dramaturgy_form,
         'concert': concert,
-        
+        'performer_formset': performer_formset
+
     })
+
+def copy_play(request, id):
+    genres = GenreType.objects.all()
+    ensembles = Ensemble.objects.all()
+    play = get_object_or_404(Play, id=id)
+
+    if request.method == 'POST':
+        form = PlayForm(request.POST, instance=play)
+        if form.is_valid():
+            new_play = form.save(commit=False)
+            new_play.id = None
+            new_play.save()
+            return redirect('get_play', id=new_play.id)  # Redirect to a view that lists employees
+        else:
+            print(form.errors)
+    else:
+        form = PlayForm(instance=play)
+    return render(request, 'archive_app/form_play.html', {
+        'form': form, 'genres': genres, 'ensembles': ensembles, 'play':play
+    })
+
+
+def copy_repeat(request, id_play, id_repeat):
+    RepeatPerformerFormSet = inlineformset_factory(
+        Repeat, RepeatPerformer,
+        form=RepeatPerformerForm,
+        extra=0,
+        can_delete=True
+    )
+
+    repeat = get_object_or_404(Repeat, id=id_repeat)
+    play = get_object_or_404(Play, pk=id_play)
+
+    if request.method == 'POST':
+        print("POST data:", request.POST)
+
+        repeat_form = RepeatForm(request.POST, instance=repeat)
+        performer_formset = RepeatPerformerFormSet(request.POST, instance=repeat)
+
+        if repeat_form.is_valid() and performer_formset.is_valid():
+            new_repeat = repeat_form.save(commit=False)
+            new_repeat.play = play
+            new_repeat.id = None
+            new_repeat.save()
+
+            # performers = performer_formset.save(commit=False)
+            performers = performer_formset.save(commit=False)
+            for performer in performers:
+                performer.repeat = new_repeat
+                performer.save()
+
+            return redirect('get_repeat', id_play=play.id, id_repeat=new_repeat.id)  # Redirect after saving
+
+        else:
+            print("Repeat Errors:", repeat_form.errors)
+            print("Performer Formset Errors:", performer_formset.errors)
+    else:
+
+        repeat_form = RepeatForm(instance=repeat)
+        performer_formset = RepeatPerformerFormSet(instance=repeat)
+
+    return render(request, 'archive_app/form_repeat.html', {
+        'play': play,
+        'repeat': repeat,
+        'repeat_form': repeat_form,
+        'performer_formset': performer_formset
+    })
+
 
 # def create_concert(request):
 #     if request.method == 'POST':
@@ -864,6 +944,6 @@ def copy_concert(request, concert_id):
 #         'jobs': jobs,
 #     })
 
-    
-    #def edit_concert(request, concert_id):
-        #concert = get_object_or_404(ConcertOrEvent, id=concert_id)
+
+# def edit_concert(request, concert_id):
+# concert = get_object_or_404(ConcertOrEvent, id=concert_id)
