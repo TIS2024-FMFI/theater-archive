@@ -1,13 +1,19 @@
 {% extends 'archive_app/index.html' %}
 {% load static %}
 {% block content %}
+
 <section class="content">
     <link rel="stylesheet" href="{% static 'archive_app/form_concerts_and_events.css' %}">
     <div class="form-container">
-
         <h2>{% if play.id %}Upraviť{% else %}Pridať{% endif %} divadelné predstavenie</h2>
-        <form id="play-form">
+        
+        <form id="play-form" method="POST" enctype="multipart/form-data">
             {% csrf_token %}
+            
+            <!-- Skrytý input na identifikáciu upravovaného predstavenia -->
+            {% if play.id %}
+                <input type="hidden" name="play_id" value="{{ play.id }}">
+            {% endif %}
 
             <div class="form-group">
                 <label for="title">Titul:</label>
@@ -45,25 +51,47 @@
             </div>
 
             <h3> Prílohy:</h3>
+
+            <!-- Sekcia pre články a kritiky -->
             <div class="form-group upload-section">
                 <label class="upload-label">Články a kritiky&ensp;
                     <input type="file" id="upload-articles" name="documents_articles" multiple accept=".pdf,.doc,.docx" onchange="updateFileList('articles')">
                 </label>
-                <ul id="file-list-articles"></ul>
+                <ul id="file-list-articles">
+                    {% for doc in existing_files.documents_articles %}
+                        <li>
+                            <a href="{{ doc.document.document_path.url }}" target="_blank">{{ doc.document.document_path.name }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
             </div>
 
+            <!-- Sekcia pre plagáty a bulletiny -->
             <div class="form-group upload-section">
                 <label class="upload-label">Plagát a bulletin&ensp;
                     <input type="file" id="upload-posters" name="documents_posters" multiple accept=".pdf,.doc,.docx" onchange="updateFileList('posters')">
                 </label>
-                <ul id="file-list-posters"></ul>
+                <ul id="file-list-posters">
+                    {% for doc in existing_files.documents_posters %}
+                        <li>
+                            <a href="{{ doc.document.document_path.url }}" target="_blank">{{ doc.document.document_path.name }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
             </div>
 
+            <!-- Sekcia pre fotografie -->
             <div class="form-group upload-section">
                 <label class="upload-label">Fotografie&ensp;
                     <input type="file" id="upload-photos" name="documents_photos" multiple accept="image/*" onchange="updateFileList('photos')">
                 </label>
-                <ul id="file-list-photos"></ul>
+                <ul id="file-list-photos">
+                    {% for doc in existing_files.documents_photos %}
+                        <li>
+                            <a href="{{ doc.document.document_path.url }}" target="_blank">{{ doc.document.document_path.name }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
             </div>
 
             <div class="form-actions">
@@ -94,36 +122,28 @@
         selectedFiles[fileType].forEach((file, index) => {
             let listItem = document.createElement("li");
             listItem.textContent = file.name;
-            listItem.appendChild(createRemoveButton(fileType, index));
             fileList.appendChild(listItem);
         });
 
         fileInput.value = "";
     }
 
-    function createRemoveButton(fileType, index) {
-        let removeButton = document.createElement("button");
-        removeButton.textContent = "❌";
-        removeButton.style.marginLeft = "10px";
-        removeButton.onclick = function() {
-            selectedFiles[fileType].splice(index, 1);
-            updateFileList(fileType);
-        };
-        return removeButton;
-    }
-
     function submitPlayForm() {
         let form = document.getElementById("play-form");
         let formData = new FormData(form);
 
-        // Pridanie súborov do FormData
+        let playId = document.querySelector("input[name='play_id']");
+        if (playId) {
+            formData.append("play_id", playId.value);
+        }
+
         Object.keys(selectedFiles).forEach(fileType => {
             selectedFiles[fileType].forEach(file => {
                 formData.append(`documents_${fileType}`, file);
             });
         });
 
-        fetch("{% url 'form_plays' %}", {
+        fetch(form.action, {
             method: "POST",
             body: formData,
             headers: { "X-CSRFToken": getCookie("csrftoken") }

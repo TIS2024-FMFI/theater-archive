@@ -21,6 +21,10 @@ from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
 from datetime import datetime
 from django.contrib import messages
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import os
+from django.conf import settings
 
 
 def get_all(model: Type[models.Model], filters: Optional[Dict[str, Any]] = None):
@@ -273,10 +277,10 @@ def list_employees(request):
 def form_plays(request):
     genres = GenreType.objects.all()
     ensembles = Ensemble.objects.all()
+    
     if request.method == 'POST':
         form = PlayForm(request.POST)
 
-        # Spracovanie všetkých typov súborov
         file_fields = {
             'documents_articles': 'article',
             'documents_posters': 'poster',
@@ -285,25 +289,24 @@ def form_plays(request):
 
         try:
             if form.is_valid():
-                play = form.save()
-
+                play = form.save()  # Tu sa vytvorí NOVÝ objekt
+                
                 for field_name, doc_type in file_fields.items():
                     uploaded_files = request.FILES.getlist(field_name)
                     for uploaded_file in uploaded_files:
                         document = Document.objects.create(document_path=uploaded_file)
                         PlayDocument.objects.create(play=play, document=document)
 
-                #return redirect('list_plays')  # Redirect to a view that lists plays
-                return JsonResponse({'success': True, 'redirect_url': reverse('list_plays')})
+                return JsonResponse({'success': True, 'redirect_url': reverse('get_play', args=[play.id])})
             else:
-                print(form.errors)
                 messages.error(request, "There were errors in the form. Please correct them.")
 
         except ValidationError as e:
-            # Convert error list to a readable format and send it as a message
             messages.error(request, " ".join(e.messages))
+    
     else:
         form = PlayForm()
+
     return render(request, 'archive_app/form_play.html', {
         'form': form,
         'genres': genres,
@@ -327,6 +330,24 @@ def upload_file(request, play_id):
         return JsonResponse({'success': True, 'files': saved_files})
 
     return JsonResponse({'success': False, 'error': 'Žiadne súbory neboli nahrané'})
+
+@csrf_exempt
+def remove_file(request, file_id):
+    if request.method == "DELETE":
+        play_document = get_object_or_404(PlayDocument, id=file_id)
+
+        # Zmazanie súboru zo súborového systému
+        file_path = os.path.join(settings.MEDIA_ROOT, str(play_document.document.document_path))
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
+        # Zmazanie z databázy
+        play_document.document.delete()
+        play_document.delete()
+
+        return JsonResponse({"success": True})
+
+    return JsonResponse({"success": False}, status=400)
 
 def form_repeats(request, id):
     RepeatPerformerFormSet = inlineformset_factory(
@@ -782,22 +803,46 @@ def edit_play(request, id):
     play = get_object_or_404(Play, id=id)
 
     if request.method == 'POST':
-        form = PlayForm(request.POST, instance=play)
+        form = PlayForm(request.POST, instance=play)  # Správne prepojenie s existujúcim objektom
+        
+        file_fields = {
+            'documents_articles': 'article',
+            'documents_posters': 'poster',
+            'documents_photos': 'photo'
+        }
+
         try:
             if form.is_valid():
-                form.save()
-                return redirect('list_plays')  # Redirect to a view that lists employees
+                play = form.save()  # Upravujeme existujúce predstavenie, nevytvárame nové
+                
+                # Zachovanie existujúcich dokumentov – už nevymazávame nič!
+                for field_name, doc_type in file_fields.items():
+                    uploaded_files = request.FILES.getlist(field_name)
+                    for uploaded_file in uploaded_files:
+                        document = Document.objects.create(document_path=uploaded_file)
+                        PlayDocument.objects.create(play=play, document=document)
+
+                return JsonResponse({'success': True, 'redirect_url': reverse('get_play', args=[play.id])})
             else:
-                print(form.errors)
                 messages.error(request, "There were errors in the form. Please correct them.")
 
         except ValidationError as e:
-            # Convert error list to a readable format and send it as a message
             messages.error(request, " ".join(e.messages))
+
     else:
         form = PlayForm(instance=play)
+        existing_files = {
+            'documents_articles': PlayDocument.objects.filter(play=play, document__document_path__iendswith='.pdf'),
+            'documents_posters': PlayDocument.objects.filter(play=play, document__document_path__iendswith='.jpg'),
+            'documents_photos': PlayDocument.objects.filter(play=play, document__document_path__iendswith='.png'),
+        }
+
     return render(request, 'archive_app/form_play.html', {
-        'form': form, 'genres': genres, 'ensembles': ensembles, 'play':play
+        'form': form,
+        'genres': genres,
+        'ensembles': ensembles,
+        'play': play,
+        'existing_files': existing_files
     })
 
 
