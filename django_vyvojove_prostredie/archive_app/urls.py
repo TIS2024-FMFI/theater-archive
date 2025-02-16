@@ -44,7 +44,7 @@ urlpatterns = [
     path('concerts_and_events/get_concert_or_event/<int:id_concert>', views.get_concert_or_event,
          name='get_concert_or_event'),
     path('concerts_and_events/edit/<int:concert_id>/', views.edit_concert, name='edit_concert'),
-    path('remove-file/<int:file_id>/', remove_file, name='remove_file'),
+    path('remove_file/<int:file_id>/', remove_file, name='remove_file'),
     path('concerts_and_events/copy/<int:concert_id>/', views.copy_concert, name='copy_concert')
 ]
 

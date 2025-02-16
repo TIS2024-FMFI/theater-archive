@@ -336,7 +336,7 @@ def remove_file(request, file_id):
     if request.method == "DELETE":
         play_document = get_object_or_404(PlayDocument, id=file_id)
 
-        # Zmazanie súboru zo súborového systému
+        # Zmazanie súboru zo servera (ak existuje)
         file_path = os.path.join(settings.MEDIA_ROOT, str(play_document.document.document_path))
         if os.path.exists(file_path):
             os.remove(file_path)
@@ -815,7 +815,7 @@ def edit_play(request, id):
             if form.is_valid():
                 play = form.save()  # Upravujeme existujúce predstavenie, nevytvárame nové
                 
-                # Zachovanie existujúcich dokumentov – už nevymazávame nič!
+                # Zachovanie existujúcich dokumentov
                 for field_name, doc_type in file_fields.items():
                     uploaded_files = request.FILES.getlist(field_name)
                     for uploaded_file in uploaded_files:
@@ -1009,25 +1009,68 @@ def copy_play(request, id):
     play = get_object_or_404(Play, id=id)
 
     if request.method == 'POST':
-        form = PlayForm(request.POST, instance=play)
-        try:
-            if form.is_valid():
-                new_play = form.save(commit=False)
-                new_play.id = None
-                new_play.save()
-                return redirect('get_play', id=new_play.id)  # Redirect to a view that lists employees
-            else:
-                print(form.errors)
-                messages.error(request, "There were errors in the form. Please correct them.")
+        form = PlayForm(request.POST)
 
-        except ValidationError as e:
-            # Convert error list to a readable format and send it as a message
-            messages.error(request, " ".join(e.messages))
+        if form.is_valid():
+            new_title = form.cleaned_data['title'].strip()
+            original_title = play.title.strip()
+
+            if new_title.lower() == original_title.lower():
+                messages.error(request, "Musíte zmeniť názov predstavenia, aby ste mohli vytvoriť kópiu.")
+                return render(request, 'archive_app/form_play.html', {
+                    'form': form,
+                    'genres': genres,
+                    'ensembles': ensembles,
+                    'play': play,
+                    'existing_files': get_existing_files(play),
+                    'is_copy': True
+                })
+
+            new_play = form.save(commit=False)
+            new_play.id = None
+            new_play.save()
+
+            existing_documents = PlayDocument.objects.filter(play=play)
+            for doc in existing_documents:
+                PlayDocument.objects.create(play=new_play, document=doc.document)
+            file_fields = {
+                'documents_articles': 'article',
+                'documents_posters': 'poster',
+                'documents_photos': 'photo'
+            }
+
+            for field_name, doc_type in file_fields.items():
+                uploaded_files = request.FILES.getlist(field_name)
+                for uploaded_file in uploaded_files:
+                    document = Document.objects.create(document_path=uploaded_file)
+                    PlayDocument.objects.create(play=new_play, document=document)
+
+            return JsonResponse({'success': True, 'redirect_url': reverse('get_play', args=[new_play.id])})
+
+        else:
+            print("Form Errors:", form.errors)
+            for field, errors in form.errors.items():
+                messages.error(request, f"{field}: {', '.join(errors)}")
+
     else:
         form = PlayForm(instance=play)
+
     return render(request, 'archive_app/form_play.html', {
-        'form': form, 'genres': genres, 'ensembles': ensembles, 'play':play
+        'form': form,
+        'genres': genres,
+        'ensembles': ensembles,
+        'play': play,
+        'existing_files': get_existing_files(play),
+        'is_copy': True
     })
+
+
+def get_existing_files(play):
+    return {
+        'documents_articles': PlayDocument.objects.filter(play=play, document__document_path__iendswith='.pdf'),
+        'documents_posters': PlayDocument.objects.filter(play=play, document__document_path__iendswith='.jpg'),
+        'documents_photos': PlayDocument.objects.filter(play=play, document__document_path__iendswith='.png'),
+    }
 
 
 def copy_repeat(request, id_play, id_repeat):
