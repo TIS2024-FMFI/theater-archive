@@ -73,7 +73,7 @@ def main_page(request):
 
     play_anniversaries = []
     repeats = Repeat.objects.exclude(date__isnull=True).filter(
-        repeat_type__name='Premiéra', date__day=today.day, date__month=today.month).group_by(play)
+        repeat_type__name='Premiéra', date__day=today.day, date__month=today.month).distinct('play')
     print(repeats)
 
     for repeat in repeats:
