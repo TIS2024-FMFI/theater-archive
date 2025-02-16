@@ -2,6 +2,8 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    path('genre_staging_team/<str:genre_name>/', views.genre_staging_team, name='genre_staging_team'),
+    path("autocomplete/", views.autocomplete, name="autocomplete"),
     path("", views.main_page, name = "main_page"),
     path('plays/', views.list_plays, name='list_plays'),
     path('concerts_and_events/', views.list_concerts_and_events, name='list_concerts_and_events'),

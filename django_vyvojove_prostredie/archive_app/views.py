@@ -24,6 +24,30 @@ from django.contrib import messages
 import os
 from django.conf import settings
 
+def genre_staging_team(request, genre_name):
+    if not request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({"error": "Invalid request"}, status=400)
+
+    genre_templates = {
+        "Opera": "archive_app/form_opera.html",
+        "Balet": "archive_app/form_ballet.html",
+        "Činohra": "archive_app/form_drama.html"
+    }
+    template = genre_templates.get(genre_name)
+    if template:
+        return render(request, template)
+    return HttpResponse("Invalid genre", status=400)
+def autocomplete(request):
+    if not request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({"error": "Invalid request"}, status=400)
+
+    query = request.GET.get('query',"").strip()
+    if query:
+        queryset = Employee.objects.filter(Q(first_name__icontains=query) | Q(last_name__icontains=query)).values_list("first_name", "last_name").distinct()[:10]
+        result = [f"{first} {last}" for first,last in queryset]
+        return JsonResponse(result, safe=False)
+    return JsonResponse([], safe=False)
+
 def get_all(model: Type[models.Model], filters: Optional[Dict[str, Any]] = None):
     if filters is None:
         filters = {}
@@ -252,23 +276,7 @@ def form_plays(request):
     ensembles = Ensemble.objects.all()
     if request.method == 'POST':
         form = PlayForm(request.POST)
-
-        # Spracovanie všetkých typov súborov
-        file_fields = {
-            'documents_articles': 'article',
-            'documents_posters': 'poster',
-            'documents_photos': 'photo'
-        }
-
         try:
-            for field_name, doc_type in file_fields.items():
-                uploaded_files = request.FILES.getlist(field_name)
-                for uploaded_file in uploaded_files:
-                    document = Document.objects.create(document_path=uploaded_file)
-                    PlayDocument.objects.create(play=play, document=document)
-
-            return JsonResponse({'success': True, 'redirect_url': reverse('get_play', args=[play.id])})
-
             if form.is_valid():
                 form.save()
                 return redirect('list_plays')  # Redirect to a view that lists employees
@@ -281,8 +289,8 @@ def form_plays(request):
             messages.error(request, " ".join(e.messages))
     else:
         form = PlayForm()
-    return render(request,'archive_app/form_play.html', {
-        'form':form, 'genres':genres, 'ensembles':ensembles
+    return render(request, 'archive_app/form_play.html', {
+        'form': form, 'genres': genres, 'ensembles': ensembles
     })
 
 def form_repeats(request, id):

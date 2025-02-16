@@ -3,6 +3,60 @@
 {% block content %}
 <section class="content">
     <link rel="stylesheet" href="{%  static 'archive_app/form_concerts_and_events.css' %}">
+    <script>
+        let timeout = null;
+        async function fetchSuggestions(id) {
+            clearTimeout(timeout)
+            timeout = setTimeout(async () => {
+                let query = document.getElementById(id).value.trim();
+                let suggestionsBox = document.getElementById(id+"_suggestions");
+
+                if (!query) {
+                    suggestionsBox.innerHTML = "";
+                    return;
+                }
+
+                const response = await fetch(`/autocomplete/?query=${encodeURIComponent(query)}`, {
+                    headers: {"X-Requested-With": "XMLHttpRequest"}
+                });
+
+                if (!response.ok) {
+                    suggestionsBox.innerHTML = "";
+                    return;
+                }
+
+                const data = await response.json();
+
+                suggestionsBox.innerHTML = "";
+
+                data.forEach(item => {
+                    let option = document.createElement("option");
+                    option.value = item;
+                    suggestionsBox.appendChild(option);
+                });
+            }, 200)
+        }
+
+        window.onload = function (){
+            document.getElementById('genre_type').addEventListener('change', function () {
+                if(this.value == '-'){
+                    document.getElementById('staging_team').innerHTML = '';
+                    return;
+                }
+                let genreName = this.options[this.selectedIndex].text;
+                let contentDiv = document.getElementById('staging_team');
+                fetch(`/genre_staging_team/${genreName}/`,{
+                    method: "GET",
+                    headers: {"X-Requested-With": "XMLHttpRequest"}
+                })
+                    .then(response => response.text())
+                    .then(html => {
+                        contentDiv.innerHTML = html;
+                    })
+                    .catch(error => console.error('Error loading genre content:', error));
+            });
+        }
+    </script>
     <div class="form-container">
 
         <h2>{% if play.id %}Upraviť{% else %}Pridať{% endif %} divadelné predstavenie</h2>
@@ -39,11 +93,14 @@
             <div class="form-group">
                 <label for="genre">Žáner:</label>
                 <select id="genre_type" name="genre_type">
+                <option value="-" selected>-</option>
                     {% for g in genres %}
                         <option value="{{ g.id }}" {% if play.genre_type == g %}selected{% endif %}> {{ g.name }}  </option>
                     {% endfor %}
                 </select>
             </div>
+
+            <div id="staging_team"></div>
 
             <h3> Prílohy:</h3>
             <div class="form-group upload-section">
