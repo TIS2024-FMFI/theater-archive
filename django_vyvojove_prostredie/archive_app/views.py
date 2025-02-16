@@ -67,13 +67,13 @@ def list_plays(request):
     search = request.GET.get('search')
 
     plays = Play.objects.all()
-    
+
     if genre and genre != "-":
         plays = plays.filter(genre_type_id=genre)
-    
+
     if ensemble and ensemble != "-":
         plays = plays.filter(ensemble_id=ensemble)
-    
+
     if season and season != "-":
         # month, year = season.split('-')
         # plays = plays.filter(repeat__date__month=month, repeat__date__year=year)
@@ -94,12 +94,12 @@ def list_plays(request):
         plays = plays.filter(publicity=True)
     elif publicity == "false":
         plays = plays.filter(publicity=False)
-    
+
     if sort_order == "asc":
         plays = plays.order_by('title')
     elif sort_order == "desc":
         plays = plays.order_by('-title')
-    
+
     genres = GenreType.objects.all()
     ensembles = Ensemble.objects.all()
     # seasons = Repeat.objects.annotate(month=TruncMonth('date'), year=TruncYear('date')).values_list('month', 'year').distinct()
@@ -135,7 +135,7 @@ def list_concerts_and_events(request):
         concerts = concerts.filter(publicity=True)
     elif publicity == "false":
         concerts = concerts.filter(publicity=False)
-    
+
     if concert_type_id:
         concerts = concerts.filter(concert_type_id=concert_type_id)
 
@@ -146,9 +146,9 @@ def list_concerts_and_events(request):
         concerts = concerts.order_by('name')
     elif sort_order == "desc":
         concerts = concerts.order_by('-name')
-    
+
     concert_types = ConcertType.objects.all()
-    
+
     return render(request, 'archive_app/concerts.html', {
         'concerts': concerts,
         'concert_types': concert_types,
@@ -181,14 +181,14 @@ def list_ensembles(request):
         ensembles = ensembles.order_by('name')
     elif sort_order == "desc":
         ensembles = ensembles.order_by('-name')
-    
+
     return render(request, 'archive_app/ensembles.html', {
         'ensembles': ensembles,
         'selected_publicity': publicity,
         'selected_sort_order': sort_order,
         'selected_search': search,
     })
-    
+
     #ensembles = get_all(Ensemble)
     #return render(request, 'archive_app/ensembles.html', {'ensembles':ensembles})
 
@@ -202,7 +202,7 @@ def list_employees(request):
     search = request.GET.get('search')
 
     employees = Employee.objects.all()
-    
+
     if not request.user.is_authenticated:
         employees = employees.filter(publicity=True)  # only public employees if not logged in
 
@@ -210,13 +210,13 @@ def list_employees(request):
         employees = employees.filter(publicity=True)
     elif publicity == "false":
         employees = employees.filter(publicity=False)
-    
+
     if first_name and first_name != "-":
         employees = employees.filter(first_name=first_name)
-    
+
     if last_name and last_name != "-":
         employees = employees.filter(last_name=last_name)
-    
+
     if role and role != "-":
         employees = employees.filter(employeejob__job__name=role)
 
@@ -227,11 +227,11 @@ def list_employees(request):
         employees = employees.order_by('last_name')
     elif sort_order == "desc":
         employees = employees.order_by('-last_name')
-    
+
     first_names = Employee.objects.values_list('first_name', flat=True).distinct()
     last_names = Employee.objects.values_list('last_name', flat=True).distinct()
     roles = EmployeeJob.objects.filter(job__play_character=False).values_list('job__name', flat=True).distinct()
-    
+
     return render(request, 'archive_app/employees.html', {
         'employees': employees,
         'first_names': first_names,
@@ -389,7 +389,7 @@ def form_ensembles(request):
             messages.error(request, " ".join(e.messages))
     else:
         form = EnsembleForm()
-    
+
     return render(request, 'archive_app/form_ensemble.html', {'form': form})
     #return render(request,'archive_app/form_ensemble.html')
 
@@ -745,7 +745,7 @@ def delete_user(request, user_id):
 
 def edit_ensemble(request, ensemble_id):
     ensemble = get_object_or_404(Ensemble, id=ensemble_id)
-    
+
     if request.method == "POST":
         form = EnsembleForm(request.POST, instance=ensemble)
         try:
@@ -763,13 +763,13 @@ def edit_ensemble(request, ensemble_id):
             messages.error(request, " ".join(e.messages))
     else:
         form = EnsembleForm(instance=ensemble)
-        
+
     return render(request, 'archive_app/form_ensemble.html', {'form': form, 'ensemble': ensemble})
 
 
 def copy_ensemble(request, ensemble_id):
     original_ensemble = get_object_or_404(Ensemble, id=ensemble_id)
-    
+
     if request.method == "POST":
         form = EnsembleForm(request.POST)
         try:
@@ -791,7 +791,7 @@ def copy_ensemble(request, ensemble_id):
     else:
         form = EnsembleForm(instance=original_ensemble)
         form.initial['name'] = ''  # Clear the name field to force the user to enter a new name
-    
+
     return render(request, 'archive_app/form_ensemble.html', {'form': form, 'ensemble': original_ensemble})
     
 # def edit_employee(request, id):
