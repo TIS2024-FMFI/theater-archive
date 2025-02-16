@@ -31,7 +31,7 @@
             <!-- Dátum (Date) -->
             <div class="form-group">
                 <label for="id_date">Dátum :</label>
-                {{ concert_form.date }}
+                <input type="datetime-local" name="date" id="id_date" {% if concert.id %} value="{{ concert_form.date.value|date:'Y-m-d\TH:i' }}" {% endif %}>
             </div>
 
             <!-- Popis (Description) -->
@@ -160,7 +160,7 @@
         }
         attachListenersToExistingForms();
 
-        // ✅ Function to Add an Actor (New Formset Instance)
+        // Function to Add an Actor (New Formset Instance)
         function addActorButton(entry) {
             let formCount = parseInt(totalForms.value);
             let actorSection = document.createElement("div");
@@ -171,6 +171,7 @@
             let newActor = document.createElement("input");
             newActor.type = "text";
             newActor.placeholder = "Umelec";
+            newActor.setAttribute("list", "autocomplete");
 
             let jobInput = entry.querySelector("input[name*='job']");
             let jobName = jobInput ? jobInput.value : "";
@@ -200,10 +201,10 @@
             actorSection.appendChild(removeBtn);
 
             entry.querySelector(".actor").after(actorSection);
-            totalForms.value = formCount + 1; // ✅ Increase formset count
+            totalForms.value = formCount + 1; // Increase formset count
         }
 
-        // ✅ Add Actor Button Event Listener (Per Role)
+        // Add Actor Button Event Listener (Per Role)
         document.querySelectorAll(".add-actor").forEach(button => {
             button.addEventListener("click", function () {
                 addActorButton(this.closest(".role_entry"));
@@ -211,7 +212,7 @@
         });
 
 
-        // ✅ Function to Add a New Role (RepeatPerformer)
+        // Function to Add a New Role (RepeatPerformer)
         if (addButton) {
             addButton.addEventListener("click", function () {
                 let formCount = parseInt(totalForms.value);
@@ -232,10 +233,10 @@
                     }
                 });
 
-                // ✅ Update form field names for Django formset
+                // Update form field names for Django formset
                 newEntry.innerHTML = newEntry.innerHTML.replace(/-\d+-/g, `-${formCount}-`);
 
-                // ✅ Clear input values (Only for new roles)
+                // Clear input values (Only for new roles)
                 newEntry.querySelectorAll("input").forEach(input => {
                     if (input.type === "text") {
                         input.value = "";
@@ -260,7 +261,7 @@
                     addActorButton(newEntry);
                 });
 
-                // ✅ Append the new job entry inside the job container
+                // Append the new job entry inside the job container
                 jobContainer.appendChild(newEntry);
                 totalForms.value = formCount + 1;
             });

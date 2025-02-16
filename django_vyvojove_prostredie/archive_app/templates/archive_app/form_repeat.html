@@ -194,6 +194,7 @@
             let newActor = document.createElement("input");
             newActor.type = "text";
             newActor.placeholder = "Umelec";
+            newActor.setAttribute("list", "autocomplete");
 
             let jobInput = entry.querySelector("input[name*='job_name']");
             let jobName = jobInput ? jobInput.value : "";

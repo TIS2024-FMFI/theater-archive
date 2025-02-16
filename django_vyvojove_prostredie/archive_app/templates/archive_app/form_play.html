@@ -3,65 +3,74 @@
 {% block content %}
 <section class="content">
     <link rel="stylesheet" href="{%  static 'archive_app/form_concerts_and_events.css' %}">
-    <script>
-        let timeout = null;
-        async function fetchSuggestions(id) {
-            clearTimeout(timeout)
-            timeout = setTimeout(async () => {
-                let query = document.getElementById(id).value.trim();
-                let suggestionsBox = document.getElementById(id+"_suggestions");
-
-                if (!query) {
-                    suggestionsBox.innerHTML = "";
-                    return;
-                }
-
-                const response = await fetch(`/autocomplete/?query=${encodeURIComponent(query)}`, {
-                    headers: {"X-Requested-With": "XMLHttpRequest"}
-                });
-
-                if (!response.ok) {
-                    suggestionsBox.innerHTML = "";
-                    return;
-                }
-
-                const data = await response.json();
-
-                suggestionsBox.innerHTML = "";
-
-                data.forEach(item => {
-                    let option = document.createElement("option");
-                    option.value = item;
-                    suggestionsBox.appendChild(option);
-                });
-            }, 200)
-        }
-
-        window.onload = function (){
-            document.getElementById('genre_type').addEventListener('change', function () {
-                if(this.value == '-'){
-                    document.getElementById('staging_team').innerHTML = '';
-                    return;
-                }
-                let genreName = this.options[this.selectedIndex].text;
-                let contentDiv = document.getElementById('staging_team');
-                fetch(`/genre_staging_team/${genreName}/`,{
-                    method: "GET",
-                    headers: {"X-Requested-With": "XMLHttpRequest"}
-                })
-                    .then(response => response.text())
-                    .then(html => {
-                        contentDiv.innerHTML = html;
-                    })
-                    .catch(error => console.error('Error loading genre content:', error));
-            });
-        }
-    </script>
+{#    <script>#}
+{#        let timeout = null;#}
+{#        async function fetchSuggestions(id) {#}
+{#            clearTimeout(timeout)#}
+{#            timeout = setTimeout(async () => {#}
+{#                let query = document.getElementById(id).value.trim();#}
+{#                let suggestionsBox = document.getElementById(id+"_suggestions");#}
+{##}
+{#                if (!query) {#}
+{#                    suggestionsBox.innerHTML = "";#}
+{#                    return;#}
+{#                }#}
+{##}
+{#                const response = await fetch(`/autocomplete/?query=${encodeURIComponent(query)}`, {#}
+{#                    headers: {"X-Requested-With": "XMLHttpRequest"}#}
+{#                });#}
+{##}
+{#                if (!response.ok) {#}
+{#                    suggestionsBox.innerHTML = "";#}
+{#                    return;#}
+{#                }#}
+{##}
+{#                const data = await response.json();#}
+{##}
+{#                suggestionsBox.innerHTML = "";#}
+{##}
+{#                data.forEach(item => {#}
+{#                    let option = document.createElement("option");#}
+{#                    option.value = item;#}
+{#                    suggestionsBox.appendChild(option);#}
+{#                });#}
+{#            }, 200)#}
+{#        }#}
+{##}
+{#        window.onload = function (){#}
+{#            document.getElementById('genre_type').addEventListener('change', function () {#}
+{#                if(this.value == '-'){#}
+{#                    document.getElementById('staging_team').innerHTML = '';#}
+{#                    return;#}
+{#                }#}
+{#                let genreName = this.options[this.selectedIndex].text;#}
+{#                let contentDiv = document.getElementById('staging_team');#}
+{#                fetch(`/genre_staging_team/${genreName}/`,{#}
+{#                    method: "GET",#}
+{#                    headers: {"X-Requested-With": "XMLHttpRequest"}#}
+{#                })#}
+{#                    .then(response => response.text())#}
+{#                    .then(html => {#}
+{#                        contentDiv.innerHTML = html;#}
+{#                    })#}
+{#                    .catch(error => console.error('Error loading genre content:', error));#}
+{#            });#}
+{#        }#}
+{#    </script>#}
     <div class="form-container">
 
         <h2>{% if play.id %}Upraviť{% else %}Pridať{% endif %} divadelné predstavenie</h2>
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
+
+            {% if messages %}
+                <ul>
+                    {% for message in messages %}
+                        <li style="color: red;">{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
 
             <div class="form-group">
                 <label for="title">Titul:</label>
@@ -100,7 +109,46 @@
                 </select>
             </div>
 
-            <div id="staging_team"></div>
+        <!-- Staging Team -->
+            <h3>Inscenačný tím</h3>
+            <div class="role_container">
+
+                {{ performer_formset.management_form }}
+                {% for form in performer_formset %}
+                <div id="role_entry" class="role_entry">
+
+                    {{ form.id.as_hidden }}
+                    <div class="form-group">
+                        <label for="role">Úloha:</label>
+                        <input type="text" id="role" placeholder="Úloha" name="{{ form.job_name.html_name }}" value="{{ form.instance.employee_job.job|default:'' }}" class="form-control">
+                        <button type="button" class="btn remove-role">&#10006;</button>
+                        <input type="checkbox" name="{{ form.DELETE.html_name }}" class="delete-checkbox" style="display: none;">
+                    </div>
+
+                    <div class="form-group actor">
+                        <label for="actor">Umelec:</label>
+                        <input type="text" id="actor" class="actor" placeholder="Umelec" list="autocomplete" name="{{ form.employee_name.html_name }}" value="{{ form.instance.employee_job.employee|default:'' }}">
+
+                        <datalist id="autocomplete">
+                          {% for e in employees %}
+                              <option value="{{ e.first_name }} {{ e.last_name }}"></option>
+                          {% endfor %}
+                        </datalist>
+
+                        <input type="checkbox" name="{{ form.DELETE.html_name }}" class="delete-checkbox" style="display: none;">
+                        <button type="button" class="btn" style="visibility: hidden;">&#10006;</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label></label>
+                        <button type="button" class="add-btn add-actor" id="add_actor">&#10010;</button>
+                    </div>
+
+                </div>
+
+                {% endfor %}
+            </div>
+            <button type="button" class="add-btn role" id="add_role">&#10010; pridať postavu</button>
 
             <h3> Prílohy:</h3>
             <div class="form-group upload-section">
@@ -133,5 +181,174 @@
         </form>
     </div>
 
+
+<script>
+    // File Upload Preview
+    document.querySelectorAll('.file-input').forEach((input) => {
+        input.addEventListener('change', function () {
+            let file = this.files[0];
+            let previewElement = document.getElementById('file-preview-' + this.id.split('-')[2]);
+
+            if (file) {
+                if (file.type.startsWith('image/')) {
+                    let reader = new FileReader();
+                    reader.onload = function (e) {
+                        previewElement.src = e.target.result;
+                        previewElement.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    previewElement.style.display = 'none';
+                }
+            }
+        });
+    });
+
+    document.addEventListener("DOMContentLoaded", function () {
+        let jobContainer = document.querySelector(".role_container");
+        let addButton = document.querySelector('.role');
+        let totalForms = document.querySelector("#id_playperformer_set-TOTAL_FORMS");
+
+        totalForms.value = document.querySelectorAll(".role_container > .role_entry").length;
+
+        function attachListenersToExistingForms() {
+            document.querySelectorAll(".role_entry").forEach((entry, index) => {
+
+                let removeButton = entry.querySelector(".remove-role");
+                let deleteField = entry.querySelector("input[name*='DELETE']");
+                if (removeButton) {
+                    removeButton.addEventListener("click", function () {
+                        if ( document.querySelectorAll(".role_container > .role_entry:not([style*='display: none'])").length > 1) {
+                            deleteField.checked = true;
+                            console.log(deleteField.name)
+                            //{#this.closest(".role_entry").remove();#}
+                            this.closest(".role_entry").style.display = "none";
+                            totalForms.value = document.querySelectorAll(".role_container > .role_entry").length;
+                        } else {
+                            alert("At least one role must remain.");
+                        }
+                    });
+                }
+
+            });
+        }
+        attachListenersToExistingForms();
+
+        // Function to Add an Actor (New Formset Instance)
+        function addActorButton(entry) {
+            let formCount = parseInt(totalForms.value);
+            let actorSection = document.createElement("div");
+            actorSection.classList.add("form-group", "actor");
+
+            let label = document.createElement("label");
+
+            let newActor = document.createElement("input");
+            newActor.type = "text";
+            newActor.placeholder = "Umelec";
+            newActor.setAttribute("list", "autocomplete");
+
+
+            let jobInput = entry.querySelector("input[name*='job_name']");
+            let jobName = jobInput ? jobInput.value : "";
+            console.log(jobInput)
+
+            let hiddenJobInput = document.createElement("input");
+            hiddenJobInput.type = "hidden";
+            hiddenJobInput.name = `playperformer_set-${formCount}-job_name`;
+            hiddenJobInput.value = jobName;
+
+            newActor.name = `playperformer_set-${formCount}-employee_name`;
+
+            let removeBtn = document.createElement("button");
+            removeBtn.type = "button";
+            removeBtn.classList.add("remove-btn", "btn");
+            removeBtn.textContent = "✖";
+
+            removeBtn.addEventListener("click", function () {
+                actorSection.remove();
+                totalForms.value = document.querySelectorAll(".role_container .actor input").length;
+            });
+
+            actorSection.appendChild(label);
+            actorSection.appendChild(newActor);
+            actorSection.appendChild(hiddenJobInput);
+            actorSection.appendChild(removeBtn);
+
+            entry.querySelector(".actor").after(actorSection);
+            totalForms.value = formCount + 1; // Increase formset count
+        }
+
+        // Add Actor Button Event Listener (Per Role)
+        document.querySelectorAll(".add-actor").forEach(button => {
+            button.addEventListener("click", function () {
+                addActorButton(this.closest(".role_entry"));
+            });
+        });
+
+
+        // Function to Add a New Role
+        if (addButton) {
+            addButton.addEventListener("click", function () {
+                let formCount = parseInt(totalForms.value);
+                let template = document.getElementById("role_entry");
+
+                if (!template) {
+                    console.error("Error: 'role_entry' element not found.");
+                    return;
+                }
+
+                let newEntry = template.cloneNode(true);
+                newEntry.removeAttribute("id"); // Remove duplicate ID
+
+                let actors = newEntry.querySelectorAll(".form-group.actor");
+                actors.forEach((actor, index) => {
+                    if (index > 0) {
+                        actor.remove();
+                    }
+                });
+
+                // Update form field names for Django formset
+                newEntry.innerHTML = newEntry.innerHTML.replace(/-\d+-/g, `-${formCount}-`);
+
+                // Clear input values (Only for new roles)
+                newEntry.querySelectorAll("input").forEach(input => {
+                    if (input.type === "text") {
+                        input.value = "";
+                    }
+                });
+
+                let removeButton = newEntry.querySelector(".remove-role");
+                let deleteField = newEntry.querySelector("input[name*='DELETE']");
+                console.log("264: "+deleteField)
+                if (removeButton) {
+                    removeButton.addEventListener("click", function () {
+                        if (totalForms.value > 1) {
+                            deleteField.checked = true;
+                            //{#this.closest(".role_entry").remove();#}
+                            newEntry.style.display = "none";
+                            totalForms.value = document.querySelectorAll(".role_container > .role_entry").length;
+                        }
+                    });
+                }
+
+                newEntry.querySelector(".add-actor").addEventListener("click", function () {
+                    addActorButton(newEntry);
+                });
+
+                // Append the new job entry inside the job container
+                jobContainer.appendChild(newEntry);
+                totalForms.value = formCount + 1;
+            });
+        }
+
+
+    });
+
+
+
+</script>
+
 </section>
+
+
 {% endblock %}
