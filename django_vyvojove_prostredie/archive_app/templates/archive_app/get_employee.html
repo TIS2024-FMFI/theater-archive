@@ -11,7 +11,7 @@
     {% if request.user.is_authenticated and request.user.is_staff %}
         <div class="action-buttons" >
             <a href="{% url 'edit_employee' employee.id %}" class="btn btn-primary">Upraviť</a>
-            <button class="copy">Vytvoriť kópiu</button>
+            <a href="{% url 'copy_employee' employee.id %}" class="btn btn-secondary copy">Vytvoriť kópiu</a>
         </div>
     {% endif %}
     <div>
@@ -19,7 +19,7 @@
             {% if not role.job.play_character %}
                 <div class="title-with-subheading">
                 <h2>{{ role.job }}</h2>
-                <p> {{ role.date_start }} {% if role.date_end %} - {{ role.date_end }} {% endif %} </p>
+                <p> {{ role.date_start|date:"d.m.Y" }} {% if role.date_end %} - {{ role.date_end|date:"d.m.Y" }} {% endif %} </p>
                 </div>
             {% endif %}
         {% endfor %}
@@ -29,15 +29,30 @@
         <div class="profile">
              <p><em> {{ employee_type }} </em></p>
 
-            <div class="profile_img">
+             <div class="profile_img">
+                {% if profile_photo %}
+                    <img style="max-width: 700px" src="{{ profile_photo.document_path.url }}" alt="Profile Image" />
+                {% else %}
+                    <img style="max-width: 700px" src="{% static 'archive_app/profile.jpg' %}" alt="Profile Image" />
+                {% endif %}
+            </div>
+
+            <!-- <div class="profile_img">
 {#                <img src="{{ employee.profile_image.url }}" alt="Profile Image" />#}
                 <img style="max-width: 700px" src="{%  static 'archive_app/profile.jpg' %}" alt="Profile Image" />
-            </div>
+            </div> -->
 
             <div class="profile_info">
                 <div>
-                    <label for="label">Dátum narodenia:</label>
-                    <div class="content">{{ employee.date_of_birth }}</div>
+                    {% if date_publicity %}
+                        <label for="label">Dátum narodenia:</label>
+                        <div class="content">{{ employee.date_of_birth|date:"d.m.Y" }}</div>
+
+                        {% if employee.date_of_death %}
+                            <label class="label">Dátum úmrtia:</label>
+                            <div class="content">{{ employee.date_of_death|date:"d.m.Y" }}</div>
+                        {% endif %}
+                    {% endif %}
 
                     <label class="label">Miesto narodenia:</label>
                     <div class="content">{{ employee.place_of_birth }}</div>

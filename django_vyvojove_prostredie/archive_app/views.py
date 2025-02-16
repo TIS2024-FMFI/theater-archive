@@ -21,7 +21,8 @@ from django.db.models.functions import TruncMonth, TruncYear
 from django.db.models import Q
 from datetime import datetime
 from django.contrib import messages
-
+import os
+from django.conf import settings
 
 def get_all(model: Type[models.Model], filters: Optional[Dict[str, Any]] = None):
     if filters is None:
@@ -251,7 +252,23 @@ def form_plays(request):
     ensembles = Ensemble.objects.all()
     if request.method == 'POST':
         form = PlayForm(request.POST)
+
+        # Spracovanie všetkých typov súborov
+        file_fields = {
+            'documents_articles': 'article',
+            'documents_posters': 'poster',
+            'documents_photos': 'photo'
+        }
+
         try:
+            for field_name, doc_type in file_fields.items():
+                uploaded_files = request.FILES.getlist(field_name)
+                for uploaded_file in uploaded_files:
+                    document = Document.objects.create(document_path=uploaded_file)
+                    PlayDocument.objects.create(play=play, document=document)
+
+            return JsonResponse({'success': True, 'redirect_url': reverse('get_play', args=[play.id])})
+
             if form.is_valid():
                 form.save()
                 return redirect('list_plays')  # Redirect to a view that lists employees
@@ -376,8 +393,68 @@ def form_ensembles(request):
     return render(request, 'archive_app/form_ensemble.html', {'form': form})
     #return render(request,'archive_app/form_ensemble.html')
 
+#files sa ukladaju do documents; toto funguje
+# def form_employees(request):
+#     EmployeeJobFormSet = inlineformset_factory(
+#         Employee, EmployeeJob,
+#         form=EmployeeJobForm,
+#         extra=1
+#         # can_delete=True
+#     )
 
-def form_employees(request): #virtualmachine44
+#     if request.method == 'POST':
+#         print("POST DATA:", request.POST)
+
+#         employee_form = EmployeeForm(request.POST)
+#         job_formset = EmployeeJobFormSet(request.POST)
+#         document_form = DocumentForm(request.POST, request.FILES) #titulna fotografia
+
+#         try:
+#             if employee_form.is_valid() and job_formset.is_valid() and document_form.is_valid():
+#                 employee = employee_form.save()
+
+#                 job_formset.instance = employee  # Assign employee to job formset
+#                 job_formset.save()  # Save EmployeeJob instances
+
+#                 #titulna fotografia upload
+#                 if 'document_path' in request.FILES:
+#                     #document.document_path = request.FILES['document_path'] #
+#                     document = document_form.save()
+#                     EmployeeDocument.objects.create(employee=employee, document=document)
+
+#                 #ostatne fotografie upload
+#                 if 'other_documents' in request.FILES:
+#                     for file in request.FILES.getlist('other_documents'):
+#                         other_document_form = DocumentForm({'document_path': file})
+#                         if other_document_form.is_valid():
+#                             other_document = other_document_form.save(commit=False)
+#                             other_document.document_path = file
+#                             other_document.save()
+#                             EmployeeDocument.objects.create(employee=employee, document=other_document)
+
+#                 return redirect('list_employees')  # Redirect after saving
+#             else:
+#                 print("Form Errors:", employee_form.errors)
+#                 print("Job Formset Errors:", job_formset.errors)
+#                 print("Document Form Errors:", document_form.errors)
+#                 messages.error(request, "There were errors in the form. Please correct them.")
+
+#         except ValidationError as e:
+#             # Convert error list to a readable format and send it as a message
+#             messages.error(request, " ".join(e.messages))
+#     else:
+#         employee_form = EmployeeForm()
+#         job_formset = EmployeeJobFormSet()
+#         document_form = DocumentForm()
+
+#     return render(request, 'archive_app/form_employee.html', {
+#         'employee_form': employee_form,
+#         'job_formset': job_formset,
+#         'document_form': document_form,
+#     })
+
+#separatne foldery
+def form_employees(request):
     EmployeeJobFormSet = inlineformset_factory(
         Employee, EmployeeJob,
         form=EmployeeJobForm,
@@ -390,18 +467,44 @@ def form_employees(request): #virtualmachine44
 
         employee_form = EmployeeForm(request.POST)
         job_formset = EmployeeJobFormSet(request.POST)
+        document_form = DocumentForm(request.POST, request.FILES)  # titulna fotografia
 
         try:
-            if employee_form.is_valid() and job_formset.is_valid():
+            if employee_form.is_valid() and job_formset.is_valid() and document_form.is_valid():
                 employee = employee_form.save()
 
                 job_formset.instance = employee  # Assign employee to job formset
                 job_formset.save()  # Save EmployeeJob instances
 
+                # titulna fotografia upload
+                if 'document_path' in request.FILES:
+                    document = document_form.save(commit=False)
+                    document.document_path = request.FILES['document_path']
+                    profile_photo_path = os.path.join(settings.MEDIA_ROOT, 'documents/employee/profile_photo')
+                    if not os.path.exists(profile_photo_path):
+                        os.makedirs(profile_photo_path)
+                    document.document_path.name = os.path.join('employee/profile_photo', document.document_path.name)
+                    document.save()
+                    EmployeeDocument.objects.create(employee=employee, document=document)
+
+                # ostatne fotografie upload
+                if 'other_documents' in request.FILES:
+                    other_photo_path = os.path.join(settings.MEDIA_ROOT, 'documents/employee/other_photo')
+                    if not os.path.exists(other_photo_path):
+                        os.makedirs(other_photo_path)
+                    for file in request.FILES.getlist('other_documents'):
+                        other_document_form = DocumentForm()
+                        other_document = other_document_form.save(commit=False)
+                        other_document.document_path = file
+                        other_document.document_path.name = os.path.join('employee/other_photo', other_document.document_path.name)
+                        other_document.save()
+                        EmployeeDocument.objects.create(employee=employee, document=other_document)
+
                 return redirect('list_employees')  # Redirect after saving
             else:
                 print("Form Errors:", employee_form.errors)
                 print("Job Formset Errors:", job_formset.errors)
+                print("Document Form Errors:", document_form.errors)
                 messages.error(request, "There were errors in the form. Please correct them.")
 
         except ValidationError as e:
@@ -410,10 +513,12 @@ def form_employees(request): #virtualmachine44
     else:
         employee_form = EmployeeForm()
         job_formset = EmployeeJobFormSet()
+        document_form = DocumentForm()
 
     return render(request, 'archive_app/form_employee.html', {
         'employee_form': employee_form,
         'job_formset': job_formset,
+        'document_form': document_form,
     })
 
 
@@ -515,8 +620,25 @@ def get_employee(request, id):
         concertperformer__employee=employee
     ).distinct().order_by('name')
 
+    # Fetch the profile photo document
+    profile_photo = EmployeeDocument.objects.filter(
+        employee=employee,
+        document__document_path__startswith='documents/employee/profile_photo/'
+    ).first()
+
+    # Fetch the other photos documents
+    other_photos = EmployeeDocument.objects.filter(
+        employee=employee,
+        document__document_path__startswith='documents/employee/other_photo/'
+    )
+
     return render(request, 'archive_app/get_employee.html', {
-        'employee':employee, 'plays':plays , 'concerts':concerts, 'roles':roles
+        'employee':employee,
+        'plays':plays ,
+        'concerts':concerts,
+        'roles':roles,
+        'profile_photo': profile_photo.document if profile_photo else None,
+        'date_publicity': employee.date_publicity,
     })
 
 def admin_section(request):
@@ -671,7 +793,43 @@ def copy_ensemble(request, ensemble_id):
         form.initial['name'] = ''  # Clear the name field to force the user to enter a new name
 
     return render(request, 'archive_app/form_ensemble.html', {'form': form, 'ensemble': original_ensemble})
+    
+# def edit_employee(request, id):
+#     EmployeeJobFormSet = inlineformset_factory(
+#         Employee, EmployeeJob,
+#         form=EmployeeJobForm,
+#         extra=0,
+#         can_delete=True
+#     )
 
+#     employee = get_object_or_404(Employee, id=id)
+#     if request.method == 'POST':
+#         employee_form = EmployeeForm(request.POST, instance=employee)
+#         job_formset = EmployeeJobFormSet(request.POST, instance=employee)
+
+#         try:
+#             if employee_form.is_valid() and job_formset.is_valid():
+#                 print("POST Data:", request.POST)
+#                 employee_form.save()
+
+#                 return redirect('list_employees')  # Redirect after saving
+#             else:
+#                 print("Form Errors:", employee_form.errors)
+#                 print("Job Formset Errors:", job_formset.errors)
+#                 messages.error(request, "There were errors in the form. Please correct them.")
+
+#         except ValidationError as e:
+#             # Convert error list to a readable format and send it as a message
+#             messages.error(request, " ".join(e.messages))
+#     else:
+#         employee_form = EmployeeForm(instance=employee)
+#         job_formset = EmployeeJobFormSet(instance=employee)
+
+#     return render(request, 'archive_app/form_employee.html', {
+#         'employee_form': employee_form,
+#         'job_formset': job_formset,
+#         'employee': employee
+#     })
 def edit_employee(request, id):
     EmployeeJobFormSet = inlineformset_factory(
         Employee, EmployeeJob,
@@ -681,19 +839,43 @@ def edit_employee(request, id):
     )
 
     employee = get_object_or_404(Employee, id=id)
+    profile_photo = EmployeeDocument.objects.filter(
+        employee=employee,
+        document__document_path__startswith='documents/employee/profile_photo/'
+    ).first()
+
     if request.method == 'POST':
         employee_form = EmployeeForm(request.POST, instance=employee)
         job_formset = EmployeeJobFormSet(request.POST, instance=employee)
+        document_form = DocumentForm(request.POST, request.FILES)  # titulna fotografia
 
         try:
-            if employee_form.is_valid() and job_formset.is_valid():
-                print("POST Data:", request.POST)
-                employee_form.save()
+            if employee_form.is_valid() and job_formset.is_valid() and document_form.is_valid():
+                employee = employee_form.save()
+                job_formset.instance = employee  # Assign employee to job formset
+                job_formset.save()  # Save EmployeeJob instances
+
+                # titulna fotografia upload
+                if 'document_path' in request.FILES:
+                    if profile_photo:
+                        profile_photo.document.document_path.delete()  # Delete the file itself
+                        profile_photo.document.delete()  # Delete the old profile photo
+                        profile_photo.delete()
+
+                    document = document_form.save(commit=False)
+                    document.document_path = request.FILES['document_path']
+                    profile_photo_path = os.path.join(settings.MEDIA_ROOT, 'documents/employee/profile_photo')
+                    if not os.path.exists(profile_photo_path):
+                        os.makedirs(profile_photo_path)
+                    document.document_path.name = os.path.join('employee/profile_photo', document.document_path.name)
+                    document.save()
+                    EmployeeDocument.objects.create(employee=employee, document=document)
 
                 return redirect('list_employees')  # Redirect after saving
             else:
                 print("Form Errors:", employee_form.errors)
                 print("Job Formset Errors:", job_formset.errors)
+                print("Document Form Errors:", document_form.errors)
                 messages.error(request, "There were errors in the form. Please correct them.")
 
         except ValidationError as e:
@@ -702,13 +884,88 @@ def edit_employee(request, id):
     else:
         employee_form = EmployeeForm(instance=employee)
         job_formset = EmployeeJobFormSet(instance=employee)
+        document_form = DocumentForm()
 
     return render(request, 'archive_app/form_employee.html', {
         'employee_form': employee_form,
         'job_formset': job_formset,
-        'employee': employee
+        'document_form': document_form,
+        'employee': employee,
+        'profile_photo': profile_photo.document if profile_photo else None,
     })
 
+def copy_employee(request, id):
+    EmployeeJobFormSet = inlineformset_factory(
+        Employee, EmployeeJob,
+        form=EmployeeJobForm,
+        extra=1,
+        can_delete=True
+    )
+
+    original_employee = get_object_or_404(Employee, id=id)
+    profile_photo = EmployeeDocument.objects.filter(
+        employee=original_employee,
+        document__document_path__startswith='documents/employee/profile_photo/'
+    ).first()
+
+    if request.method == 'POST':
+        employee_form = EmployeeForm(request.POST)
+        job_formset = EmployeeJobFormSet(request.POST)
+        document_form = DocumentForm(request.POST, request.FILES)  # titulna fotografia
+
+        try:
+            if employee_form.is_valid() and job_formset.is_valid() and document_form.is_valid():
+                new_employee = employee_form.save()
+
+                job_formset.instance = new_employee  # Assign new employee to job formset
+                job_formset.save()  # Save EmployeeJob instances
+
+                # titulna fotografia upload
+                if 'document_path' in request.FILES:
+                    document = document_form.save(commit=False)
+                    document.document_path = request.FILES['document_path']
+                    profile_photo_path = os.path.join(settings.MEDIA_ROOT, 'documents/employee/profile_photo')
+                    if not os.path.exists(profile_photo_path):
+                        os.makedirs(profile_photo_path)
+                    document.document_path.name = os.path.join('employee/profile_photo', document.document_path.name)
+                    document.save()
+                    EmployeeDocument.objects.create(employee=new_employee, document=document)
+
+                # ostatne fotografie upload
+                if 'other_documents' in request.FILES:
+                    other_photo_path = os.path.join(settings.MEDIA_ROOT, 'documents/employee/other_photo')
+                    if not os.path.exists(other_photo_path):
+                        os.makedirs(other_photo_path)
+                    for file in request.FILES.getlist('other_documents'):
+                        other_document_form = DocumentForm()
+                        other_document = other_document_form.save(commit=False)
+                        other_document.document_path = file
+                        other_document.document_path.name = os.path.join('employee/other_photo', other_document.document_path.name)
+                        other_document.save()
+                        EmployeeDocument.objects.create(employee=new_employee, document=other_document)
+
+                return redirect('list_employees')  # Redirect after saving
+            else:
+                print("Form Errors:", employee_form.errors)
+                print("Job Formset Errors:", job_formset.errors)
+                print("Document Form Errors:", document_form.errors)
+                messages.error(request, "There were errors in the form. Please correct them.")
+
+        except ValidationError as e:
+            # Convert error list to a readable format and send it as a message
+            messages.error(request, " ".join(e.messages))
+    else:
+        employee_form = EmployeeForm(instance=original_employee)
+        job_formset = EmployeeJobFormSet(instance=original_employee)
+        document_form = DocumentForm()
+
+    return render(request, 'archive_app/form_employee.html', {
+        'employee_form': employee_form,
+        'job_formset': job_formset,
+        'document_form': document_form,
+        'employee': original_employee,
+        'profile_photo': profile_photo.document if profile_photo else None,
+    })
 
 def edit_play(request, id):
     genres = GenreType.objects.all()

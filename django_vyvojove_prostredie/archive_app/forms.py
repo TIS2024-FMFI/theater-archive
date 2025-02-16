@@ -281,7 +281,7 @@ class ConcertPerformerForm(forms.ModelForm): #ucinkujuci
 
 
 class DocumentForm(forms.ModelForm):
-    file = forms.FileField(required=False)
+    document_path = forms.FileField(required=False)
 
     class Meta:
         model = Document
