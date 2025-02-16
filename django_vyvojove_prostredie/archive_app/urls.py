@@ -34,6 +34,7 @@ urlpatterns = [
     path('plays/get_play/<int:id_play>/edit/<int:id_repeat>', views.edit_repeat, name='edit_repeat'),
     path('plays/get_play/<int:id_play>/copy/<int:id_repeat>', views.copy_repeat, name='copy_repeat'),
     path('employee/edit/<int:id>/', views.edit_employee, name='edit_employee'),
+    path('employees/copy/<int:id>/', views.copy_employee, name='copy_employee'), #
 
     path('concerts_and_events/add_concert_or_event/', views.form_concerts_and_events, name='form_concerts_and_events'),
     path('concerts_and_events/get_concert_or_event/<int:id_concert>', views.get_concert_or_event,

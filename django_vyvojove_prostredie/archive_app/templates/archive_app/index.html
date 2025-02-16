@@ -9,12 +9,20 @@
         <section class="content">
             <div class="container">
                 <div class="column">
-                    <h2>Výročia umelcov</h2>
+                    <h2>Výročia umelcov:</h2>
                     <ul>
-                        <li>242. výročie narodenia umelca Niccolò Paganini</li>
-                        <li>242. výročie narodenia umelca Niccolò Paganini</li>
-                        <li>242. výročie narodenia umelca Niccolò Paganini</li>
-                        <li>242. výročie narodenia umelca Niccolò Paganini</li>
+                        {% for person in anniversaries %}
+                            <li>
+                              {% if person.birth_anniversary %}
+                                  <a href="{% url 'get_employee' person.id %}" class="item">{{ person.name }}</a> má dnes {{ person.birth_anniversary }}. výročie narodenia.<br>
+                              {% endif %}
+                              {% if person.death_anniversary %}
+                                  <a href="{% url 'get_employee' person.id %}" class="item">{{ person.name }}</a> má dnes {{ person.death_anniversary }}. výročie úmrtia.<br>
+                              {% endif %}
+                            </li>
+                        {% empty %}
+                            <li>Žiadne výročia dnes.</li>
+                        {% endfor %}
                     </ul>
                 </div>
                 <div class="column">

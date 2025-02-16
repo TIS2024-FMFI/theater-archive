@@ -217,6 +217,7 @@ li.list_ensemble_people:hover {
     flex-grow: 1;
     border-radius: 8px;
     border: 1px solid #ddd;
+    border: none;
     margin: 20px;
 }
 
