@@ -55,33 +55,41 @@ def get_all(model: Type[models.Model], filters: Optional[Dict[str, Any]] = None)
     return model.objects.filter(**filters)
 
 def main_page(request):
-    year, month, day = date.today().year, date.today().month, date.today().day
+    today = date.today()
+    current_year = today.year
 
-    if request.user.is_authenticated:
-        people = Employee.objects.filter(Q(date_of_birth__month = month, date_of_birth__day = day) | Q(date_of_death__month = month, date_of_death__day = day))
-    else:
-        people = Employee.objects.filter(Q(date_of_birth__month=month, date_of_birth__day=day, publicity = True, date_publicity=True) |
-                                         Q(date_of_death__month=month,date_of_death__day=day, publicity = True, date_publicity=True))
+    employee_anniversaries = []
+    employees = Employee.objects.exclude(date_of_birth__isnull=True).filter(
+        date_of_birth__day=today.day, date_of_birth__month=today.month).distinct()
+    print(employees)
+    for employee in employees:
+        birth_year = employee.date_of_birth.year
+        age = current_year - birth_year
 
-    anniversaries = []
-    for person in people:
-        birth_anniversary = None
-        death_anniversary = None
-
-        if person.date_of_birth and person.date_of_birth.month == month and person.date_of_birth.day == day:
-            birth_anniversary = year - person.date_of_birth.year
-
-        if person.date_of_death and person.date_of_death.month == month and person.date_of_death.day == day:
-            death_anniversary = year - person.date_of_death.year
-
-        anniversaries.append({
-            "id" : person.id,
-            "name": person.first_name + " " + person.last_name,
-            "birth_anniversary": birth_anniversary,
-            "death_anniversary": death_anniversary
+        employee_anniversaries.append({
+            "age": age,
+            "employee": employee
         })
 
-    return render(request, 'archive_app/index.html', {"anniversaries":anniversaries, "today":date.today()})
+    play_anniversaries = []
+    repeats = Repeat.objects.exclude(date__isnull=True).filter(
+        repeat_type__name='Premiéra', date__day=today.day, date__month=today.month).group_by(play)
+    print(repeats)
+
+    for repeat in repeats:
+        premiere_year = repeat.date.year
+        play_age = current_year - premiere_year
+
+        play_anniversaries.append({
+            "play_age": play_age,
+            "play": repeat.play,
+            "premiere_year": premiere_year
+        })
+
+    return render(request, "archive_app/index.html", {
+        "employee_anniversaries": employee_anniversaries,
+        "play_anniversaries": play_anniversaries,
+    })
 
 def list_plays(request):
     genre = request.GET.get('genre')

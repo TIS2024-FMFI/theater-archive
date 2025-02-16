@@ -12,27 +12,32 @@
                 <div class="column">
                     <h2>Výročia umelcov:</h2>
                     <ul>
-                        {% for person in anniversaries %}
+                        {% for anniversary in employee_anniversaries %}
                             <li>
-                              {% if person.birth_anniversary %}
-                                  <a href="{% url 'get_employee' person.id %}" class="item">{{ person.name }}</a> má dnes {{ person.birth_anniversary }}. výročie narodenia.<br>
-                              {% endif %}
-                              {% if person.death_anniversary %}
-                                  <a href="{% url 'get_employee' person.id %}" class="item">{{ person.name }}</a> má dnes {{ person.death_anniversary }}. výročie úmrtia.<br>
-                              {% endif %}
+                                {{ anniversary.age }}. narodeniny umelca
+                                <a href="{% url 'get_employee' id=anniversary.employee.id %}">
+                                    {{ anniversary.employee.first_name }} {{ anniversary.employee.last_name }}
+                                </a>
                             </li>
                         {% empty %}
-                            <li>Žiadne výročia dnes.</li>
+                            <p>Žiadne výročia.</p>
                         {% endfor %}
                     </ul>
                 </div>
                 <div class="column">
                     <h2>Výročia inscenácií:</h2>
                     <ul>
-                        <li>81. výročie prvého uvedenia hry Rodinné putá (1943)</li>
-                        <li>81. výročie prvého uvedenia hry Rodinné putá (1943)</li>
-                        <li>81. výročie prvého uvedenia hry Rodinné putá (1943)</li>
-                        <li>81. výročie prvého uvedenia hry Rodinné putá (1943)</li>
+                        {% for anniversary in play_anniversaries %}
+                            <li>
+                                {{ anniversary.play_age }}. výročie premiéry hry
+                                <a href="{% url 'get_play' id=anniversary.play.id %}">
+                                    {{ anniversary.play.title }}
+                                </a>
+                                ({{ anniversary.premiere_year }})
+                            </li>
+                        {% empty %}
+                            <p>Žiadne výročia.</p>
+                        {% endfor %}
                     </ul>
                 </div>
             </div>
