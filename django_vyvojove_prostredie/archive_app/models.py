@@ -174,6 +174,14 @@ class RepeatType(models.Model):
         return self.name
 
 
+class RepeatDocument(models.Model):
+    repeat = models.ForeignKey('Repeat', on_delete=models.CASCADE)
+    document = models.ForeignKey('Document', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.repeat} - {self.document}"
+
+
 class RepeatPerformer(models.Model):
     repeat = models.ForeignKey('Repeat', on_delete=models.CASCADE)
     employee_job = models.ForeignKey('EmployeeJob', on_delete=models.CASCADE) #toto je rola

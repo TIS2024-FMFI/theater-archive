@@ -3,6 +3,7 @@ from . import views
 from django.conf import settings
 from django.conf.urls.static import static
 from .views import remove_file
+from .views import remove_file, upload_repeat_file, remove_repeat_file
 
 urlpatterns = [
     path("", views.main_page, name = "main_page"),
@@ -45,6 +46,8 @@ urlpatterns = [
          name='get_concert_or_event'),
     path('concerts_and_events/edit/<int:concert_id>/', views.edit_concert, name='edit_concert'),
     path('remove_file/<int:file_id>/', remove_file, name='remove_file'),
+    path('upload_repeat/<int:repeat_id>/', upload_repeat_file, name='upload_repeat_file'),
+    path('remove_repeat_file/<int:file_id>/', remove_repeat_file, name='remove_repeat_file'),
     path('concerts_and_events/copy/<int:concert_id>/', views.copy_concert, name='copy_concert')
 ]
 

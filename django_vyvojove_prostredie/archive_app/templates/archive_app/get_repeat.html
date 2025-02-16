@@ -1,7 +1,7 @@
 {% extends 'archive_app/index.html' %}
 {% load static %}
 {% block content %}
-<link rel="stylesheet" href="{%  static 'archive_app/get_entity.css' %}">
+<link rel="stylesheet" href="{% static 'archive_app/get_entity.css' %}">
 <section class="content">
     <div class="title-with-subheading">
         <h1> {{ play.title }} </h1>
@@ -9,11 +9,12 @@
     </div>
     <hr>
     {% if request.user.is_authenticated and request.user.is_staff %}
-    <div class="action-buttons" >
+    <div class="action-buttons">
         <a href="{% url 'edit_repeat' play.id repeat.id %}" class="btn btn-primary">Upraviť</a>
         <a href="{% url 'copy_repeat' play.id repeat.id %}" class="btn btn-primary">Vytvoriť kópiu</a>
     </div>
     {% endif %}
+
     <div class="container">
         <div class="left-section">
             <p><em>{{ play.genre_type }}</em></p>
@@ -25,9 +26,8 @@
 
             <label class="label">Miesto:</label>
             <div class="content">{{ repeat.room }}</div>
-
-
         </div>
+
         <div class="right-section">
             <h2>Obsadenie</h2>
             <div class="obsadenie-list">
@@ -37,15 +37,36 @@
                         {% for actor in actors %}
                             <br> &emsp;<a href="{% url 'get_employee' actor.id %}" class="item">{{ actor.first_name }} {{ actor.last_name }} </a>
                         {% endfor %}
-                        <br> <br>
+                        <br><br>
                     {% endfor %}
                 </div>
-                <!-- ostatne obsadenie picoviny pridat SEM -->
             </div>
         </div>
     </div>
 
+    <hr>
 
+    <div class="container">
+        <div class="photos-right-section">
+            <h2>Prílohy</h2>
+            {% for doc in documents %}
+                {% with doc.document.document_path.url|lower as file_url %}
+                    {% if file_url|slice:"-4:" == ".jpg" or file_url|slice:"-4:" == ".png" or file_url|slice:"-5:" == ".jpeg" or file_url|slice:"-4:" == ".gif" %}
+                        <div class="photo-gallery">
+                            <img src="{{ file_url }}" alt="Fotografia z predstavenia" class="photo">
+                        </div>
+                    {% else %}
+                        <div class="pdf-link">
+                            <div class="pdf-icon">📄</div>
+                            <a href="{{ file_url }}" target="_blank">Stiahnuť súbor</a>
+                        </div>
+                    {% endif %}
+                {% endwith %}
+            {% empty %}
+                <p>Žiadne prílohy</p>
+            {% endfor %}
+        </div>
+    </div>
 
 </section>
 {% endblock %}

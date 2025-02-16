@@ -353,16 +353,23 @@ def form_repeats(request, id):
     RepeatPerformerFormSet = inlineformset_factory(
         Repeat, RepeatPerformer,
         form=RepeatPerformerForm,
-        extra=1,  # Allow adding at least one performer
-        can_delete=True  # Allow deleting performers
+        extra=1,
+        can_delete=True
     )
 
     play = get_object_or_404(Play, pk=id)
 
     if request.method == 'POST':
-        print("POST data:", request.POST)
+        print("FILES RECEIVED:", request.FILES)  # ✅ Debug
+
         repeat_form = RepeatForm(request.POST)
         performer_formset = RepeatPerformerFormSet(request.POST)
+
+        file_fields = {
+            'documents_articles': 'article',
+            'documents_posters': 'poster',
+            'documents_photos': 'photo'
+        }
 
         try:
             if repeat_form.is_valid() and performer_formset.is_valid():
@@ -370,12 +377,21 @@ def form_repeats(request, id):
                 repeat.play = play
                 repeat.save()
 
+                # Uloženie obsadenia
                 performers = performer_formset.save(commit=False)
                 for performer in performers:
                     performer.repeat = repeat
-                    performer.save()  # This automatically assigns EmployeeJob
+                    performer.save()
 
-                return redirect('get_repeat', id_play=play.id, id_repeat=repeat.id)  # Redirect after saving
+                # 🔹 Uloženie dokumentov
+                for field_name, doc_type in file_fields.items():
+                    uploaded_files = request.FILES.getlist(field_name)
+                    print(f"Processing {field_name}: {uploaded_files}")  # ✅ Debug
+                    for uploaded_file in uploaded_files:
+                        document = Document.objects.create(document_path=uploaded_file)
+                        RepeatDocument.objects.create(repeat=repeat, document=document)
+
+                return JsonResponse({'success': True, 'redirect_url': reverse('get_repeat', args=[play.id, repeat.id])})
 
             else:
                 print("Repeat Errors:", repeat_form.errors)
@@ -383,8 +399,8 @@ def form_repeats(request, id):
                 messages.error(request, "There were errors in the form. Please correct them.")
 
         except ValidationError as e:
-            # Convert error list to a readable format and send it as a message
             messages.error(request, " ".join(e.messages))
+
     else:
         repeat_form = RepeatForm()
         performer_formset = RepeatPerformerFormSet()
@@ -395,6 +411,44 @@ def form_repeats(request, id):
         'performer_formset': performer_formset,
         'employees': Employee.objects.all()
     })
+
+
+@csrf_exempt
+def upload_repeat_file(request, repeat_id):
+    if request.method == 'POST' and request.FILES:
+        repeat = get_object_or_404(Repeat, id=repeat_id)
+
+        uploaded_files = request.FILES.getlist('file')
+        saved_files = []
+
+        for uploaded_file in uploaded_files:
+            document = Document.objects.create(document_path=uploaded_file)
+            RepeatDocument.objects.create(repeat=repeat, document=document)
+            saved_files.append(uploaded_file.name)
+
+        return JsonResponse({'success': True, 'files': saved_files})
+
+    return JsonResponse({'success': False, 'error': 'Žiadne súbory neboli nahrané'})
+
+
+@csrf_exempt
+def remove_repeat_file(request, file_id):
+    if request.method == "DELETE":
+        repeat_document = get_object_or_404(RepeatDocument, id=file_id)
+
+        # Zmazanie súboru zo servera (ak existuje)
+        file_path = os.path.join(settings.MEDIA_ROOT, str(repeat_document.document.document_path))
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
+        # Zmazanie z databázy
+        repeat_document.document.delete()
+        repeat_document.delete()
+
+        return JsonResponse({"success": True})
+
+    return JsonResponse({"success": False}, status=400)
+
 
 def form_concerts_and_events(request):
     ConcertPerformerFormSet = inlineformset_factory(
@@ -539,6 +593,7 @@ def get_repeat(request, id_play, id_repeat):
     play = get_object_or_404(Play, pk=id_play)
     repeat = get_object_or_404(Repeat, pk=id_repeat)
 
+    # 🔹 Načítanie obsadenia
     qs = RepeatPerformer.objects.filter(repeat=repeat)
     performers = dict()
     for rp in qs:
@@ -549,8 +604,21 @@ def get_repeat(request, id_play, id_repeat):
         if employee not in performers[job]:
             performers[job].append(employee)
 
+    # 🔹 Načítanie dokumentov (ako v `get_play`)
+    documents = RepeatDocument.objects.filter(repeat=repeat)
+
+    articles = [doc for doc in documents if "article" in doc.document.document_path.name.lower()]
+    posters = [doc for doc in documents if "poster" in doc.document.document_path.name.lower()]
+    photos = [doc for doc in documents if doc.document.document_path.name.lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))]
+
     return render(request, 'archive_app/get_repeat.html', {
-        'play': play, 'repeat':repeat, 'performers':performers
+        'play': play,
+        'repeat': repeat,
+        'performers': performers,
+        'documents': documents,
+        'articles': articles,
+        'posters': posters,
+        'photos': photos,
     })
 
 def get_concert_or_event(request, id_concert):
