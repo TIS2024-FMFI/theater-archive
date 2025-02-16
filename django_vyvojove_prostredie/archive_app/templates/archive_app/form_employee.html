@@ -156,17 +156,6 @@
                         <img id="file-preview-profile" class="file-preview">
                     {% endif %}
                 </label>
-                <!-- <br>
-                <label class="upload-label">Ďalšie fotografie&ensp;
-                    <input type="file" id="file-upload-other" class="file-input" name="other_documents" accept="image/*, .pdf, .doc, .docx" multiple>
-                    <span class="btn">Prilož súbor</span>
-                    <img id="file-preview-other" class="file-preview">
-                </label> -->
-                <!-- <label class="upload-label">Ďalšie fotografie&ensp;
-                    <input type="file" id="file-upload-other" class="file-input-other" name="other_documents" accept="image/*, .pdf, .doc, .docx" multiple>
-                    <span class="btn">Prilož súbor</span>
-                    <div id="file-preview-other-container" class="file-preview-container"></div>
-                </label> -->
             </div>
 
             <div class="form-actions">
@@ -213,67 +202,6 @@
                 }
             });
         });
-
-        //toto mi aj tak neumoznuje multiple upload c:
-        // document.querySelectorAll('.file-input').forEach((input) => {
-        //     input.addEventListener('change', function () {
-        //         let file = this.files[0];
-        //         let previewElement = document.getElementById('file-preview-' + this.id.split('-')[2]);
-
-        //         if (file) {
-        //             // Check if the file is an image
-        //             if (file.type.startsWith('image/')) {
-        //                 let reader = new FileReader();
-        //                 reader.onload = function (e) {
-        //                     previewElement.src = e.target.result;
-        //                     previewElement.style.display = 'block';
-        //                 };
-        //                 reader.readAsDataURL(file);
-        //             } else {
-        //                 previewElement.style.display = 'none';
-        //             }
-
-        //             this.nextElementSibling.textContent = "Súbor prijatý";
-        //         }
-        //     });
-        // });
-
-        // document.querySelectorAll('.file-input-other').forEach((input) => {
-        //     input.addEventListener('change', function () {
-        //         let files = this.files;
-        //         let previewContainer = document.getElementById('file-preview-' + this.id.split('-')[2] + '-container');
-
-        //         // Clear previous previews
-        //         previewContainer.innerHTML = '';
-
-        //         if (files.length > 0) {
-        //             for (let i = 0; i < files.length; i++) {
-        //                 let file = files[i];
-
-        //                 // Create a new image element for each file
-        //                 let previewElement = document.createElement('img');
-        //                 previewElement.classList.add('file-preview');
-
-        //                 if (file.type.startsWith('image/')) {
-        //                     let reader = new FileReader();
-        //                     reader.onload = function (e) {
-        //                         previewElement.src = e.target.result;
-        //                         previewElement.style.display = 'block';
-        //                     };
-        //                     reader.readAsDataURL(file);
-        //                 } else {
-        //                     previewElement.style.display = 'none';
-        //                 }
-
-        //                 // Append the preview element to the container
-        //                 previewContainer.appendChild(previewElement);
-        //             }
-
-        //             this.nextElementSibling.textContent = "Súbory prijaté";
-        //         }
-        //     });
-        // });
-
 
         document.getElementById("category").addEventListener("change", toggleNewJobField);
 
