@@ -48,12 +48,11 @@
                     {% for job, people in production.items %}
                         <label class="label">{{ job.name }}:</label>
                         {% for p in people %}
-                            <div class="content">&emsp;<a href="{% url 'get_employee' p.id %}" class="item"> {{ p.first_name }} {{ p.last_name }}  </a> </div>
+                            &emsp;<a href="{% url 'get_employee' p.id %}" class="item">{{ p.first_name }} {{ p.last_name }}</a><br>
                         {% endfor %}
                     {% endfor %}
 
                 </div>
-                <!-- ostatne inscenacne picoviny pridat SEM -->
             </div>
         </div>
 

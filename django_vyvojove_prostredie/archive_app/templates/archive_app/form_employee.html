@@ -9,6 +9,16 @@
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
 
+
+            {% if messages %}
+                <ul>
+                    {% for message in messages %}
+                        <li style="color: red;">{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
+
             <!-- First Row: Meno & Priezvisko -->
             <div class="form-row">
                 <div class="form-group">
@@ -231,11 +241,18 @@
                         newJobField.style.display = "none";
                 }
 
-                //{#let startDateField = jobEntry.querySelector("input[name*='date_start']");#}
-                //{#let endDateField = jobEntry.querySelector("input[name*='date_end']");#}
+                let jobInput = jobEntry.querySelector("input[name*='job_name']");
+                if (jobInput && jobInput.value.trim() !== "") {
+                    jobInput.value = jobInput.value.trim(); // Ensure value remains
+                }
 
-                //{#if (startDateField) startDateField.value = "";#}
-                //{#if (endDateField) endDateField.value = "";#}
+                let actorInputs = jobEntry.querySelectorAll("input[name*='employee_name']");
+                actorInputs.forEach((actorInput) => {
+                    if (actorInput.value.trim() !== "") {
+                        actorInput.value = actorInput.value.trim();
+                    }
+                });
+
 
                 // handle remove job button
                 let deleteField = jobEntry.querySelector("input[type='checkbox'][name*='DELETE']");

@@ -61,13 +61,14 @@ class EmployeeJobForm(forms.ModelForm):
             'date_end': forms.DateInput(attrs={'type': 'date'}),
         }
 
+
     def clean(self):
         cleaned_data = super().clean()
         job = cleaned_data.get("job")
         new_job_name = cleaned_data.get("new_job_name")
 
-        if not job and not new_job_name:
-            raise forms.ValidationError("Prosísm vyberte zamestnanie alebo zadajte nové.")
+        # if not job and not new_job_name:
+        #     raise forms.ValidationError("Prosísm vyberte zamestnanie alebo zadajte nové.")
 
         if new_job_name:
             job, created = Job.objects.get_or_create(name=new_job_name)
@@ -78,6 +79,7 @@ class EmployeeJobForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(EmployeeJobForm, self).__init__(*args, **kwargs)
         self.fields['date_end'].required = False
+        self.fields['date_start'].required = False
 
 
 class PlayForm(forms.ModelForm):
@@ -160,7 +162,7 @@ class RepeatForm(forms.ModelForm):
 
 class RepeatPerformerForm(forms.ModelForm):
     employee = forms.CharField(
-        required=True,
+        required=False,
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Umelec'})
     )
 
@@ -179,6 +181,10 @@ class RepeatPerformerForm(forms.ModelForm):
         job_name = self.cleaned_data.get('job_name', '').strip()
 
         name_parts = employee_name.split()
+        if employee_name == "":
+            repeat_performer.employee_job = None
+            return repeat_performer
+
         if len(name_parts) < 2:
             raise forms.ValidationError("Zadajte korektné meno všetkých umelcov.")
 
@@ -286,3 +292,97 @@ class DocumentForm(forms.ModelForm):
     class Meta:
         model = Document
         fields = ['document_path']
+
+
+
+class PlayPerformerForm(forms.ModelForm):
+    employee_name = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Umelec'})
+    )
+
+    job_name = forms.CharField(
+        required=False,  # Allow entering a custom job
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Úloha'})
+    )
+
+    class Meta:
+        model = PlayPerformer
+        fields = ['play', 'employee_name', 'job_name']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            if self.instance.employee:
+                self.fields[
+                    'employee_name'].initial = f"{self.instance.employee.first_name} {self.instance.employee.last_name}"
+
+    def save(self, commit=True):
+        play_performer = super().save(commit=False)
+        employee_name  = self.cleaned_data['employee_name'].strip()
+        job_name = self.cleaned_data.get('job_name', '').strip()
+
+        name_parts = employee_name.split()
+        if employee_name == "":
+            return play_performer
+
+        if len(name_parts) < 2:
+            raise forms.ValidationError("Zadajte korektné meno všetkých umelcov.")
+
+        first_name, last_name = name_parts[0], " ".join(name_parts[1:])
+        try:
+            employee = Employee.objects.get(first_name=first_name, last_name=last_name)
+        except Employee.DoesNotExist:
+            raise forms.ValidationError("Umelec neexistuje. Zadajte korektné meno všetkých umelcov.")
+
+
+        job, created = Job.objects.get_or_create(name=job_name) if job_name else (None, False)
+        if job:
+            job.play_character = False
+            job.save()
+            try:
+                print("Employee, job:", employee, job)
+                employee_job = EmployeeJob.objects.get(employee=employee, job=job)
+                print("     ", employee_job)
+            except EmployeeJob.DoesNotExist:
+                employee_job, created = EmployeeJob.objects.get_or_create(
+                    employee=employee,
+                    job=job,  # Assign the newly created or existing job
+                    date_start=timezone.now()
+                )
+
+            play_performer.employee_job = employee_job  # Assign EmployeeJob to RepeatPerformer
+
+        if commit:
+            play_performer.save()
+
+        return play_performer
+
+
+PlayPerformerFormSet = inlineformset_factory(
+    Play, PlayPerformer,
+    form=PlayPerformerForm,
+    extra=1,  # Allow adding at least one performer
+    can_delete=True  # Allow deleting performers
+)
+
+RepeatPerformerFormSet = inlineformset_factory(
+    Repeat, RepeatPerformer,
+    form=RepeatPerformerForm,
+    extra=1,
+    can_delete=True
+)
+
+ConcertPerformerFormSet = inlineformset_factory(
+    Concert, ConcertPerformer,
+    form=ConcertPerformerForm,
+    extra=1,
+    can_delete=True
+)
+
+EmployeeJobFormSet = inlineformset_factory(
+    Employee, EmployeeJob,
+    form=EmployeeJobForm,
+    extra=1,
+    can_delete=True
+)
